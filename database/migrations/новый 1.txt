@@ -1,0 +1,61 @@
+<div class="top-banner">
+  <div class="swiper swiper-top-banner">
+      <div class="swiper-wrapper">
+
+        <div class="swiper-slide top-banner-slide border-radius-32" style="background-image: url(/images/2025/02/06/top-background.png); background-repeat: no-repeat; background-position: center center; background-size: cover;">
+						<div class="top-banner-slide-inner font-unbounded">
+                <h2 class="top-banner-slide-title color-white ">ЭКСПОДАТ</h2>
+                <div class="top-banner-slide-content color-white ">
+                    <p><span style="white-space: pre-wrap;">Лучшее решение для проведения регистрации<br>участников выстовок и конференций!<br><span style="font-size:16px;">*по мнению экспертов рынка</span></span></p>
+                </div>
+                <div class="background-green color-white border-radius-32 sale-block">
+                    <h3 class="sale-block-title ">СКИДКА 10%</h3>
+                    <p class="sale-block-text ">по промокоду<br><strong>ВАУ!ЯХОЧУ!</strong></p>
+                    <div class="text-end">
+                        <a class="sale-block-button main-button border-radius-16 color-green background-white hover-color-white hover-background-orange d-inline-block" href="#">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+           <div class="swiper-slide top-banner-slide border-radius-32" style="background-image: url(/images/2025/02/06/top-background.png); background-repeat: no-repeat; background-position: center center; background-size: cover;">
+						<div class="top-banner-slide-inner font-unbounded">
+                <h2 class="top-banner-slide-title color-white ">ЭКСПОДАТ</h2>
+                <div class="top-banner-slide-content color-white ">
+                    <p><span style="white-space: pre-wrap;">Лучшее решение для проведения регистрации<br>участников выстовок и конференций!<br><span style="font-size:16px;">*по мнению экспертов рынка</span></span></p>
+                </div>
+                <div class="background-green color-white border-radius-32 sale-block">
+                    <h3 class="sale-block-title ">СКИДКА 10%</h3>
+                    <p class="sale-block-text ">по промокоду<br><strong>ВАУ!ЯХОЧУ!</strong></p>
+                    <div class="text-end">
+                        <a class="sale-block-button main-button border-radius-16 color-green background-white hover-color-white hover-background-orange d-inline-block" href="#">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+      </div>
+  </div>
+  <div class="swiper-buttons">
+    <div id="top-banner-prev" class="swiper-arrow arrow-left round-block background-gray hover-background-white"><img src="/images/2025/02/06/arrow-narrow-left.svg" alt="arrow left"></div>
+    <div id="top-banner-next" class="swiper-arrow arrow-right round-block background-gray hover-background-white"><img src="/images/2025/02/06/arrow-narrow-left.svg" alt="arrow right"></div>
+  </div>
+</div>
+
+<script>
+    var swiper = new Swiper(".swiper-top-banner", {
+      spaceBetween: 30,
+      speed: 700,
+      effect: 'fade',
+        /*
+      loop: false,
+      autoplay: {
+        delay: 5000,
+        disableOnInteraction: false, 
+      },*/
+      navigation: {
+        nextEl: "#top-banner-next",
+        prevEl: "#top-banner-prev",
+      }
+    });
+</script>
