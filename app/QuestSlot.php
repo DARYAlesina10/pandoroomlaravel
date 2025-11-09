@@ -4,16 +4,13 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Quest extends Model
+class QuestSlot extends Model
 {
-    protected $guarded = [
-        '_method',
-        '_token',
-    ];
+    protected $guarded = ['id'];
 
-    public function slots()
+    public function quest()
     {
-        return $this->hasMany(QuestSlot::class);
+        return $this->belongsTo(Quest::class);
     }
 
     public function bookings()

@@ -10,6 +10,7 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
+use App\Http\Controllers\QuestBookingController;
 use App\Http\Controllers\QuestController;
 use App\Http\Controllers\AdminQuestController;
 use App\Http\Controllers\HomeController;
@@ -25,6 +26,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Маршруты для квестов
 Route::get('/quests', [QuestController::class, 'index'])->name('quests.index');
 Route::get('/quests/{id}', [QuestController::class, 'show'])->name('quests.show');
+Route::post('/quests/{id}/book', [QuestBookingController::class, 'store'])->name('quests.book');
 Route::get('/login', [Auth\LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [Auth\LoginController::class, 'login']);
 Auth::routes();
