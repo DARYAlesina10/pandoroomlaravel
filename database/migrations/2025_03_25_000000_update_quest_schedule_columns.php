@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+class UpdateQuestScheduleColumns extends Migration
+{
     public function up(): void
     {
         Schema::table('quests', function (Blueprint $table) {
@@ -35,4 +36,4 @@ return new class extends Migration {
             $table->dropColumn(['weekday_base_price', 'weekend_base_price']);
         });
     }
-};
+}
