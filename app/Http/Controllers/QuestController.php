@@ -15,7 +15,18 @@ class QuestController extends Controller
 
     public function show($id)
     {
-        $quest = Quest::findOrFail($id); // Находим квест по ID или выбрасываем ошибку, если не найден
-        return view('quests.show', compact('quest')); // Возвращаем представление для одного квеста
+        $quest = Quest::with('slots')->findOrFail($id); // Находим квест по ID или выбрасываем ошибку, если не найден
+
+        $upcomingBookings = $quest->bookings()
+            ->with('slot')
+            ->whereDate('booking_date', '>=', now()->toDateString())
+            ->orderBy('booking_date')
+            ->orderBy('quest_slot_id')
+            ->get();
+
+        return view('quests.show', [
+            'quest' => $quest,
+            'upcomingBookings' => $upcomingBookings,
+        ]); // Возвращаем представление для одного квеста
     }
 }
