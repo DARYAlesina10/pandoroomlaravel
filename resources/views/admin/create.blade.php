@@ -61,6 +61,14 @@
             <label for="price_per_additional_player">Цена за дополнительного игрока</label>
             <input type="number" name="price_per_additional_player" id="price_per_additional_player" class="form-control">
         </div>
+        <div class="form-group">
+            <label for="weekday_base_price">Базовая цена (будни)</label>
+            <input type="number" step="0.01" name="weekday_base_price" id="weekday_base_price" class="form-control" value="{{ old('weekday_base_price') }}" required>
+        </div>
+        <div class="form-group">
+            <label for="weekend_base_price">Базовая цена (выходные)</label>
+            <input type="number" step="0.01" name="weekend_base_price" id="weekend_base_price" class="form-control" value="{{ old('weekend_base_price') }}" required>
+        </div>
         <button type="submit" class="btn btn-primary">Создать</button>
     </form>
 </div>

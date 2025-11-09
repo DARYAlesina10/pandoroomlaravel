@@ -40,6 +40,15 @@ class QuestBookingController extends Controller
 
         $date = Carbon::parse($validated['booking_date'])->startOfDay();
 
+        if (!$slot->isAvailableForDate($date)) {
+            return redirect()
+                ->back()
+                ->withErrors(['quest_slot_id' => 'Этот слот недоступен для выбранной даты.'])
+                ->withInput();
+        }
+
+        $slot->setRelation('quest', $quest);
+
         DB::beginTransaction();
 
         try {
@@ -111,12 +120,8 @@ class QuestBookingController extends Controller
 
     protected function determinePrice(QuestSlot $slot, Carbon $date): float
     {
-        if ($slot->is_discount && $slot->discount_price) {
-            return (float) $slot->discount_price;
-        }
+        $slot->loadMissing('quest');
 
-        $isWeekend = in_array($date->dayOfWeek, [Carbon::SATURDAY, Carbon::SUNDAY], true);
-
-        return (float) ($isWeekend ? $slot->weekend_price : $slot->weekday_price);
+        return $slot->priceForDate($date);
     }
 }

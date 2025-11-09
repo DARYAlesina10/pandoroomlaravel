@@ -12,10 +12,9 @@ class AdminQuestController extends Controller
     {
         return view('admin.create');
     }
-public function index()
+
+    public function index()
     {
-     
-        // Возврат представления с данными
         return view('admin.quests');
     }
     public function store(Request $request)
@@ -35,6 +34,8 @@ public function index()
             'additional_services' => 'nullable|string',
             'additional_players' => 'nullable|integer',
             'price_per_additional_player' => 'nullable|integer',
+            'weekday_base_price' => 'required|numeric|min:0',
+            'weekend_base_price' => 'required|numeric|min:0',
         ]);
 
         $quest = new Quest();
@@ -58,7 +59,8 @@ public function index()
     public function edit($id)
     {
         $quest = Quest::findOrFail($id);
-        return view('quests.edit', compact('quest'));
+
+        return view('admin.edit', compact('quest'));
     }
 
     public function update(Request $request, $id)
@@ -78,6 +80,8 @@ public function index()
             'additional_services' => 'nullable|string',
             'additional_players' => 'nullable|integer',
             'price_per_additional_player' => 'nullable|integer',
+            'weekday_base_price' => 'required|numeric|min:0',
+            'weekend_base_price' => 'required|numeric|min:0',
         ]);
 
         $quest = Quest::findOrFail($id);
@@ -101,6 +105,6 @@ public function index()
 
         $quest->save();
 
-        return redirect()->route('quests.edit', $quest->id)->with('success', 'Квест успешно обновлён!');
+        return redirect()->route('admin.edit', $quest->id)->with('success', 'Квест успешно обновлён!');
     }
 }

@@ -162,12 +162,25 @@
             transition: transform 0.15s ease, box-shadow 0.15s ease, border 0.15s ease;
         }
 
+        .slot-button--unavailable {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-style: dashed;
+        }
+
         .slot-button:hover,
         .slot-button:focus {
             transform: translateY(-3px);
             box-shadow: 0 20px 30px -18px rgba(34, 211, 238, 0.7);
             border-color: rgba(34, 211, 238, 0.55);
             outline: none;
+        }
+
+        .slot-button--unavailable:hover,
+        .slot-button--unavailable:focus {
+            transform: none;
+            box-shadow: none;
+            border-color: rgba(148, 163, 184, 0.4);
         }
 
         .slot-button span {
@@ -395,7 +408,7 @@
             </section>
         </div>
 
-        <div class="slot-section">
+        <div class="slot-section" data-weekday-base="{{ $quest->weekday_base_price }}" data-weekend-base="{{ $quest->weekend_base_price }}">
             <h2>Выберите время</h2>
             <p>Кликните по доступному времени, чтобы открыть окно бронирования и создать личный кабинет гостя.</p>
 
@@ -406,23 +419,43 @@
                     @foreach($quest->slots as $slot)
                         @php
                             $timeLabel = \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->time)->format('H:i');
+                            $weekdayPrice = $slot->weekday_uses_base_price ? $quest->weekday_base_price : $slot->weekday_price;
+                            $weekendPrice = $slot->weekend_uses_base_price ? $quest->weekend_base_price : $slot->weekend_price;
+                            $isActive = $slot->weekday_enabled || $slot->weekend_enabled;
                         @endphp
+                        @if(!$isActive)
+                            @continue
+                        @endif
                         <button
                             type="button"
                             class="slot-button"
                             data-slot-button
                             data-slot-id="{{ $slot->id }}"
                             data-time="{{ $timeLabel }}"
-                            data-weekday-price="{{ $slot->weekday_price }}"
-                            data-weekend-price="{{ $slot->weekend_price }}"
+                            data-weekday-price="{{ $weekdayPrice }}"
+                            data-weekend-price="{{ $weekendPrice }}"
+                            data-weekday-enabled="{{ $slot->weekday_enabled ? 'true' : 'false' }}"
+                            data-weekend-enabled="{{ $slot->weekend_enabled ? 'true' : 'false' }}"
+                            data-weekday-uses-base-price="{{ $slot->weekday_uses_base_price ? 'true' : 'false' }}"
+                            data-weekend-uses-base-price="{{ $slot->weekend_uses_base_price ? 'true' : 'false' }}"
                             data-is-discount="{{ $slot->is_discount ? 'true' : 'false' }}"
                             data-discount-price="{{ $slot->discount_price }}"
-                            data-price-label="Будни: {{ number_format($slot->weekday_price, 0, '.', ' ') }} ₽ | Выходные: {{ number_format($slot->weekend_price, 0, '.', ' ') }} ₽"
                         >
                             {{ $timeLabel }}
                             <span>
-                                будни: {{ number_format($slot->weekday_price, 0, '.', ' ') }} ₽<br>
-                                выходные: {{ number_format($slot->weekend_price, 0, '.', ' ') }} ₽
+                                будни:
+                                @if($slot->weekday_enabled)
+                                    {{ number_format($weekdayPrice, 0, '.', ' ') }} ₽
+                                @else
+                                    недоступно
+                                @endif
+                                <br>
+                                выходные:
+                                @if($slot->weekend_enabled)
+                                    {{ number_format($weekendPrice, 0, '.', ' ') }} ₽
+                                @else
+                                    недоступно
+                                @endif
                                 @if($slot->is_discount && $slot->discount_price)
                                     <br>скидка: {{ number_format($slot->discount_price, 0, '.', ' ') }} ₽
                                 @endif
@@ -557,6 +590,10 @@
         const slotIdInput = document.getElementById('modal-slot-id');
         const priceHint = document.getElementById('modal-price-hint');
         const bookingDateInput = document.getElementById('modal-booking-date');
+        const slotSection = document.querySelector('.slot-section');
+        const questWeekdayBasePrice = slotSection ? Number(slotSection.dataset.weekdayBase || 0) : 0;
+        const questWeekendBasePrice = slotSection ? Number(slotSection.dataset.weekendBase || 0) : 0;
+        const slotButtons = Array.from(document.querySelectorAll('[data-slot-button]'));
         let activeSlot = null;
 
         const formatCurrency = (value) => {
@@ -572,34 +609,93 @@
             }).format(number);
         };
 
+        const parseDateInput = () => {
+            const dateValue = bookingDateInput.value;
+            if (!dateValue) {
+                return null;
+            }
+
+            const [year, month, day] = dateValue.split('-').map(Number);
+            if (!year || !month || !day) {
+                return null;
+            }
+
+            return new Date(year, month - 1, day);
+        };
+
+        const isWeekendDate = (date) => {
+            const day = date.getDay();
+            return day === 0 || day === 6;
+        };
+
+        const parseSlotDataset = (dataset) => ({
+            id: dataset.slotId,
+            time: dataset.time,
+            weekdayPrice: Number(dataset.weekdayPrice ?? 0),
+            weekendPrice: Number(dataset.weekendPrice ?? 0),
+            isDiscount: dataset.isDiscount === 'true',
+            discountPrice: dataset.discountPrice ? Number(dataset.discountPrice) : null,
+            weekdayEnabled: dataset.weekdayEnabled === 'true',
+            weekendEnabled: dataset.weekendEnabled === 'true',
+            weekdayUsesBasePrice: dataset.weekdayUsesBasePrice === 'true',
+            weekendUsesBasePrice: dataset.weekendUsesBasePrice === 'true',
+        });
+
+        const isSlotAvailableOnDate = (slotData, date) => {
+            if (!date) {
+                return slotData.weekdayEnabled || slotData.weekendEnabled;
+            }
+
+            return isWeekendDate(date) ? slotData.weekendEnabled : slotData.weekdayEnabled;
+        };
+
+        const resolveEffectivePrice = (slotData, isWeekend) => {
+            if (isWeekend) {
+                return slotData.weekendUsesBasePrice ? questWeekendBasePrice : slotData.weekendPrice;
+            }
+
+            return slotData.weekdayUsesBasePrice ? questWeekdayBasePrice : slotData.weekdayPrice;
+        };
+
         const computePriceText = (slotData) => {
             if (!slotData) {
                 return 'Выберите время, чтобы увидеть стоимость.';
             }
 
-            const dateValue = bookingDateInput.value;
-            if (slotData.isDiscount === 'true' && slotData.discountPrice) {
+            const selectedDate = parseDateInput();
+
+            if (selectedDate && !isSlotAvailableOnDate(slotData, selectedDate)) {
+                return 'Этот слот недоступен на выбранную дату.';
+            }
+
+            if (slotData.isDiscount && slotData.discountPrice) {
                 return `Специальная цена: ${formatCurrency(slotData.discountPrice)}.`;
             }
 
-            if (!dateValue) {
-                return slotData.priceLabel;
+            const baseWeekdayPrice = resolveEffectivePrice(slotData, false);
+            const baseWeekendPrice = resolveEffectivePrice(slotData, true);
+
+            if (!selectedDate) {
+                const weekdayLabel = slotData.weekdayEnabled ? formatCurrency(baseWeekdayPrice) : 'недоступно';
+                const weekendLabel = slotData.weekendEnabled ? formatCurrency(baseWeekendPrice) : 'недоступно';
+
+                return `Будни: ${weekdayLabel} • Выходные: ${weekendLabel}`;
             }
 
-            const [year, month, day] = dateValue.split('-').map(Number);
-            if (!year || !month || !day) {
-                return slotData.priceLabel;
-            }
+            const weekend = isWeekendDate(selectedDate);
+            const price = resolveEffectivePrice(slotData, weekend);
 
-            const localDate = new Date(year, month - 1, day);
-            const dayOfWeek = localDate.getDay();
-            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-            const price = isWeekend ? slotData.weekendPrice : slotData.weekdayPrice;
-
-            return `Стоимость бронирования: ${formatCurrency(price)} (${isWeekend ? 'выходной день' : 'будний день'}).`;
+            return `Стоимость бронирования: ${formatCurrency(price)} (${weekend ? 'выходной день' : 'будний день'}).`;
         };
 
         const openModal = (slotData) => {
+            const selectedDate = parseDateInput();
+
+            if (selectedDate && !isSlotAvailableOnDate(slotData, selectedDate)) {
+                priceHint.textContent = 'Этот слот недоступен на выбранную дату.';
+                return;
+            }
+
             activeSlot = slotData;
             slotIdInput.value = slotData.id;
             slotSummaryInput.value = `${slotData.time}`;
@@ -611,18 +707,32 @@
             modal.classList.remove('is-visible');
         };
 
-        document.querySelectorAll('[data-slot-button]').forEach((button) => {
-            button.addEventListener('click', () => {
-                const slotData = {
-                    id: button.dataset.slotId,
-                    time: button.dataset.time,
-                    weekdayPrice: button.dataset.weekdayPrice,
-                    weekendPrice: button.dataset.weekendPrice,
-                    isDiscount: button.dataset.isDiscount,
-                    discountPrice: button.dataset.discountPrice,
-                    priceLabel: button.dataset.priceLabel,
-                };
+        const refreshSlotStates = () => {
+            const selectedDate = parseDateInput();
 
+            slotButtons.forEach((button) => {
+                const slotData = parseSlotDataset(button.dataset);
+                const available = isSlotAvailableOnDate(slotData, selectedDate);
+
+                if (selectedDate) {
+                    button.disabled = !available;
+                    button.classList.toggle('slot-button--unavailable', !available);
+                    button.setAttribute('aria-disabled', available ? 'false' : 'true');
+                } else {
+                    button.disabled = false;
+                    button.classList.remove('slot-button--unavailable');
+                    button.removeAttribute('aria-disabled');
+                }
+            });
+
+            if (activeSlot) {
+                priceHint.textContent = computePriceText(activeSlot);
+            }
+        };
+
+        slotButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const slotData = parseSlotDataset(button.dataset);
                 openModal(slotData);
             });
         });
@@ -644,8 +754,10 @@
         });
 
         bookingDateInput.addEventListener('change', () => {
-            priceHint.textContent = computePriceText(activeSlot);
+            refreshSlotStates();
         });
+
+        refreshSlotStates();
 
         if (modal.dataset.shouldOpen === 'true' && slotIdInput.value) {
             const initialButton = document.querySelector(`[data-slot-id="${slotIdInput.value}"]`);
