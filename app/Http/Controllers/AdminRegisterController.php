@@ -24,7 +24,7 @@ class AdminRegisterController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'is_admin' => true, // Устанавливаем пользователя как администратора
+            'role' => 'admin',
         ]);
 
         return response()->json(['user' => $user], 201);
