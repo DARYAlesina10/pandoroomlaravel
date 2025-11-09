@@ -10,6 +10,7 @@ class QuestBooking extends Model
 
     protected $casts = [
         'booking_date' => 'date',
+        'price' => 'float',
     ];
 
     public function quest()
@@ -20,5 +21,10 @@ class QuestBooking extends Model
     public function slot()
     {
         return $this->belongsTo(QuestSlot::class, 'quest_slot_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

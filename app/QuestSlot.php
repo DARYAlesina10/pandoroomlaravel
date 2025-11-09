@@ -8,6 +8,10 @@ class QuestSlot extends Model
 {
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'is_discount' => 'bool',
+    ];
+
     public function quest()
     {
         return $this->belongsTo(Quest::class);

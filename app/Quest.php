@@ -13,7 +13,7 @@ class Quest extends Model
 
     public function slots()
     {
-        return $this->hasMany(QuestSlot::class);
+        return $this->hasMany(QuestSlot::class)->orderBy('time');
     }
 
     public function bookings()

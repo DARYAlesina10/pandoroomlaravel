@@ -15,10 +15,12 @@ class QuestController extends Controller
 
     public function show($id)
     {
-        $quest = Quest::with('slots')->findOrFail($id); // Находим квест по ID или выбрасываем ошибку, если не найден
+        $quest = Quest::with(['slots' => function ($query) {
+            $query->orderBy('time');
+        }])->findOrFail($id); // Находим квест по ID или выбрасываем ошибку, если не найден
 
         $upcomingBookings = $quest->bookings()
-            ->with('slot')
+            ->with(['slot', 'user'])
             ->whereDate('booking_date', '>=', now()->toDateString())
             ->orderBy('booking_date')
             ->orderBy('quest_slot_id')
