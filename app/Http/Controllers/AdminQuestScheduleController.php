@@ -125,7 +125,9 @@ class AdminQuestScheduleController extends Controller
                 'required',
                 'date_format:H:i',
                 Rule::unique('quest_slots', 'time')
-                    ->where(fn ($query) => $query->where('quest_id', $quest->id))
+                    ->where(function ($query) use ($quest) {
+                        return $query->where('quest_id', $quest->id);
+                    })
                     ->ignore($slotId),
             ],
             'weekday_enabled' => ['sometimes', 'boolean'],
