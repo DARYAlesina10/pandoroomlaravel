@@ -114,8 +114,8 @@ class AdminQuestScheduleController extends Controller
 
     protected function validateSlot(Request $request, Quest $quest, ?int $slotId = null): array
     {
-        $useWeekdayBase = $request->boolean('weekday_uses_base_price');
-        $useWeekendBase = $request->boolean('weekend_uses_base_price');
+        $useWeekdayBase = $this->toBoolean($request->input('weekday_uses_base_price'));
+        $useWeekendBase = $this->toBoolean($request->input('weekend_uses_base_price'));
 
         $weekdayRules = $useWeekdayBase ? ['nullable', 'numeric', 'min:0'] : ['required', 'numeric', 'min:0'];
         $weekendRules = $useWeekendBase ? ['nullable', 'numeric', 'min:0'] : ['required', 'numeric', 'min:0'];
@@ -142,8 +142,8 @@ class AdminQuestScheduleController extends Controller
 
         return [
             'time' => $time,
-            'weekday_enabled' => $request->boolean('weekday_enabled'),
-            'weekend_enabled' => $request->boolean('weekend_enabled'),
+            'weekday_enabled' => $this->toBoolean($request->input('weekday_enabled')),
+            'weekend_enabled' => $this->toBoolean($request->input('weekend_enabled')),
             'weekday_uses_base_price' => $useWeekdayBase,
             'weekend_uses_base_price' => $useWeekendBase,
             'weekday_price' => $validated['weekday_price'] ?? null,
@@ -160,5 +160,18 @@ class AdminQuestScheduleController extends Controller
         if ($slot->weekend_uses_base_price) {
             $slot->weekend_price = $quest->weekend_base_price;
         }
+    }
+
+    protected function toBoolean($value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if ($value === null) {
+            return false;
+        }
+
+        return in_array(strtolower((string) $value), ['1', 'true', 'on', 'yes'], true);
     }
 }
