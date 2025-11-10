@@ -6,14 +6,19 @@
     <title>{{ $quest->name }}</title>
     <style>
         :root {
-            --background: #0f172a;
-            --card: #111827;
-            --accent: #22d3ee;
-            --accent-dark: #0ea5e9;
-            --text: #f8fafc;
-            --muted: #94a3b8;
+            --bg-dark: #080808;
+            --bg-overlay: rgba(8, 8, 8, 0.85);
+            --accent: #d9c062;
+            --accent-strong: #c0a445;
+            --text: #f6f3ee;
+            --muted: rgba(239, 234, 220, 0.75);
+            --muted-strong: rgba(239, 234, 220, 0.45);
+            --border: rgba(255, 255, 255, 0.12);
             --danger: #f87171;
             --success: #4ade80;
+            --card-bg: rgba(21, 21, 21, 0.82);
+            --card-highlight: rgba(35, 35, 35, 0.86);
+            --shadow: 0 35px 60px -35px rgba(0, 0, 0, 0.75);
         }
 
         * {
@@ -23,299 +28,400 @@
         body {
             margin: 0;
             font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: radial-gradient(circle at top, rgba(34, 211, 238, 0.1), transparent 55%), var(--background);
+            background: var(--bg-dark);
             color: var(--text);
             min-height: 100vh;
-            padding: 32px 16px;
         }
+
+        a { color: inherit; }
 
         .page {
-            max-width: 1080px;
-            margin: 0 auto;
+            position: relative;
+            min-height: 100vh;
         }
 
-        a.back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            color: var(--muted);
-            margin-bottom: 16px;
-            transition: color 0.2s ease-in-out;
-        }
-
-        a.back-link:hover {
-            color: var(--accent);
-        }
-
-        .quest-card {
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.65));
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            border-radius: 24px;
-            padding: 32px;
-            box-shadow: 0 35px 60px -25px rgba(15, 23, 42, 0.65);
-        }
-
-        .quest-header {
+        .hero {
+            position: relative;
+            min-height: 520px;
+            padding: 48px 24px 80px;
             display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 32px;
+            align-items: flex-end;
+            background-size: cover;
+            background-position: center;
         }
 
-        .quest-meta {
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(8, 8, 8, 0.35) 0%, rgba(8, 8, 8, 0.92) 75%, rgba(8, 8, 8, 1) 100%);
+        }
+
+        .hero__content {
+            position: relative;
+            z-index: 2;
+            max-width: 1080px;
+            width: 100%;
+            margin: 0 auto;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 24px;
+        }
+
+        .hero__breadcrumbs {
+            display: inline-flex;
+            align-items: center;
             gap: 12px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.45);
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .hero__title {
+            margin: 0;
+            font-size: clamp(40px, 5vw, 68px);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .hero__meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .hero__meta span {
+            padding: 12px 18px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             font-size: 14px;
+        }
+
+        .content {
+            max-width: 1100px;
+            margin: -140px auto 0;
+            padding: 0 24px 120px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .deck {
+            display: grid;
+            gap: 32px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 28px;
+            padding: 32px 36px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .card--highlight {
+            background: var(--card-highlight);
+        }
+
+        .card__title {
+            margin: 0 0 18px;
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .card__subtitle {
+            margin: -12px 0 20px;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+        }
+
+        .details-grid section {
+            display: grid;
+            gap: 12px;
+        }
+
+        .details-grid h3 {
+            margin: 0;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
             color: var(--muted);
         }
 
-        .quest-meta span {
-            background: rgba(148, 163, 184, 0.08);
-            border-radius: 999px;
-            padding: 8px 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .quest-description {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 24px;
-            margin-bottom: 40px;
-        }
-
-        .quest-description section {
-            background: rgba(148, 163, 184, 0.06);
+        .status-banner,
+        .error-banner {
+            margin-bottom: 24px;
+            padding: 18px 20px;
             border-radius: 16px;
-            padding: 20px 24px;
-            border: 1px solid rgba(148, 163, 184, 0.14);
-        }
-
-        .quest-description h2 {
-            margin-top: 0;
-            font-size: 18px;
-            margin-bottom: 12px;
-            color: var(--accent);
-        }
-
-        .status, .errors {
-            padding: 16px 20px;
-            border-radius: 16px;
-            margin-bottom: 20px;
             border: 1px solid transparent;
+            font-size: 15px;
         }
 
-        .status {
+        .status-banner {
+            border-color: rgba(74, 222, 128, 0.4);
             background: rgba(74, 222, 128, 0.12);
-            border-color: rgba(74, 222, 128, 0.35);
             color: var(--success);
         }
 
-        .errors {
-            background: rgba(248, 113, 113, 0.1);
-            border-color: rgba(248, 113, 113, 0.35);
+        .error-banner {
+            border-color: rgba(248, 113, 113, 0.4);
+            background: rgba(248, 113, 113, 0.12);
             color: var(--danger);
         }
 
-        .errors ul {
-            margin: 8px 0 0;
-            padding-left: 18px;
+        .schedule {
+            display: grid;
+            gap: 24px;
         }
 
-        .slot-section {
-            margin-bottom: 40px;
+        .schedule__heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
         }
 
-        .slot-section h2 {
-            margin-top: 0;
-            margin-bottom: 12px;
-            font-size: 20px;
+        .schedule__heading h2 {
+            margin: 0;
+            font-size: 28px;
         }
 
-        .slot-section p {
-            color: var(--muted);
-            margin-top: 0;
+        .schedule__heading button {
+            border: none;
+            border-radius: 14px;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 14px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
         }
 
         .date-strip {
             display: flex;
-            gap: 8px;
-            padding: 12px 0;
+            gap: 12px;
             overflow-x: auto;
+            padding-bottom: 6px;
             scrollbar-width: thin;
         }
 
         .date-pill {
-            border: 1px solid rgba(34, 211, 238, 0.35);
-            background: rgba(34, 211, 238, 0.12);
-            border-radius: 12px;
-            padding: 10px 16px;
-            min-width: 96px;
-            text-align: left;
-            color: var(--text);
+            min-width: 110px;
+            padding: 14px 16px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(0, 0, 0, 0.45);
+            display: grid;
+            gap: 6px;
             cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            font-size: 14px;
-            transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
+            transition: transform 0.2s ease, border 0.2s ease;
         }
+
+        .date-pill:hover { transform: translateY(-3px); }
 
         .date-pill.is-selected {
-            background: linear-gradient(135deg, rgba(34, 211, 238, 0.35), rgba(14, 165, 233, 0.45));
-            border-color: rgba(14, 165, 233, 0.65);
-            transform: translateY(-2px);
+            border-color: rgba(217, 192, 98, 0.95);
+            background: linear-gradient(135deg, rgba(217, 192, 98, 0.85), rgba(192, 164, 69, 0.65));
+            color: #1a1405;
         }
 
-        .date-pill__day {
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
+        .date-pill__weekday {
             font-size: 12px;
-            color: rgba(248, 250, 252, 0.75);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+        }
+
+        .date-pill.is-selected .date-pill__weekday {
+            color: rgba(32, 26, 14, 0.7);
         }
 
         .date-pill__date {
-            font-size: 15px;
+            font-size: 18px;
+            font-weight: 600;
         }
 
-        .date-pill--picker {
-            background: rgba(148, 163, 184, 0.15);
-            border-color: rgba(148, 163, 184, 0.35);
+        .date-pill__month {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted-strong);
         }
 
-        .date-picker {
-            position: absolute;
-            left: -9999px;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
+        .schedule__grid {
+            display: grid;
+            gap: 16px;
         }
 
         .slot-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 12px;
-            margin-top: 20px;
+            gap: 14px;
         }
 
         .slot-button {
-            background: rgba(34, 211, 238, 0.12);
-            border: 1px solid rgba(34, 211, 238, 0.35);
-            border-radius: 14px;
+            position: relative;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.45);
             padding: 18px;
-            color: var(--text);
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+            display: grid;
             gap: 10px;
-            transition: transform 0.15s ease, box-shadow 0.15s ease, border 0.15s ease;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .slot-button:not(.slot-button--unavailable):hover {
+            transform: translateY(-4px);
+            box-shadow: 0 25px 35px -25px rgba(0, 0, 0, 0.9);
         }
 
         .slot-button--unavailable {
-            opacity: 0.4;
             cursor: not-allowed;
-            border-style: dashed;
-        }
-
-        .slot-button:hover,
-        .slot-button:focus {
-            transform: translateY(-3px);
-            box-shadow: 0 20px 30px -18px rgba(34, 211, 238, 0.7);
-            border-color: rgba(34, 211, 238, 0.55);
-            outline: none;
-        }
-
-        .slot-button--unavailable:hover,
-        .slot-button--unavailable:focus {
-            transform: none;
-            box-shadow: none;
-            border-color: rgba(148, 163, 184, 0.4);
+            opacity: 0.45;
         }
 
         .slot-button--booked {
-            border-style: dashed;
+            border-color: rgba(248, 113, 113, 0.75);
+            background: rgba(248, 113, 113, 0.14);
         }
 
         .slot-button__time {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
-        }
-
-        .slot-button__status {
-            font-size: 13px;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            color: rgba(248, 250, 252, 0.65);
         }
 
         .slot-button__price {
             font-size: 14px;
-            font-weight: 500;
-            color: rgba(248, 250, 252, 0.85);
-        }
-
-        .empty-slots {
-            padding: 20px;
-            background: rgba(148, 163, 184, 0.08);
-            border-radius: 16px;
-            border: 1px dashed rgba(148, 163, 184, 0.4);
             color: var(--muted);
         }
 
-        .slot-legend {
-            display: flex;
-            gap: 16px;
+        .slot-button__status {
             font-size: 12px;
             text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .schedule__legend {
+            display: flex;
+            gap: 16px;
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .legend-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .legend-dot.available { background: var(--accent); }
+        .legend-dot.booked { background: var(--danger); }
+        .legend-dot.closed { background: var(--muted-strong); }
+
+        .schedule-error {
+            display: none;
+            padding: 16px 20px;
+            border-radius: 16px;
+            background: rgba(248, 113, 113, 0.14);
+            border: 1px solid rgba(248, 113, 113, 0.35);
+            color: var(--danger);
+        }
+
+        .schedule-error.is-visible { display: block; }
+
+        .guest-card {
+            display: grid;
+            gap: 20px;
+            background: linear-gradient(135deg, rgba(217, 192, 98, 0.1), rgba(217, 192, 98, 0.02));
+            border-radius: 24px;
+            padding: 28px;
+            border: 1px solid rgba(217, 192, 98, 0.3);
+        }
+
+        .guest-card h3 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .guest-card__grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+
+        .guest-card__item {
+            padding: 18px;
+            border-radius: 18px;
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(217, 192, 98, 0.2);
+        }
+
+        .guest-card__item strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
             letter-spacing: 0.08em;
-            color: rgba(148, 163, 184, 0.9);
+            text-transform: uppercase;
+            color: rgba(217, 192, 98, 0.9);
+        }
+
+        .stories {
+            display: grid;
+            gap: 24px;
+        }
+
+        .stories__list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+        }
+
+        .story-card {
+            border-radius: 24px;
+            padding: 24px;
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .story-card__meta {
+            display: flex;
+            justify-content: space-between;
+            color: var(--muted);
+            font-size: 13px;
             margin-bottom: 12px;
         }
 
-        .slot-legend span {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+        .story-card__title {
+            margin: 0 0 12px;
+            font-size: 18px;
+            font-weight: 600;
         }
 
-        .slot-legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-        }
+        .story-card__text { color: var(--muted); }
 
-        .slot-legend-dot.available {
-            background: var(--accent);
-        }
-
-        .slot-legend-dot.booked {
-            background: var(--danger);
-        }
-
-        .slot-legend-dot.closed {
-            background: rgba(148, 163, 184, 0.5);
-        }
-
-        .schedule-error {
-            background: rgba(248, 113, 113, 0.12);
-            border: 1px solid rgba(248, 113, 113, 0.35);
-            padding: 14px 16px;
-            border-radius: 14px;
-            color: var(--danger);
-            margin-bottom: 16px;
-            display: none;
-        }
-
-        .schedule-error.is-visible {
-            display: block;
+        footer {
+            margin-top: 64px;
+            text-align: center;
+            color: var(--muted-strong);
+            font-size: 13px;
         }
 
         .modal {
@@ -324,12 +430,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px;
-            backdrop-filter: blur(12px);
-            background: rgba(15, 23, 42, 0.72);
+            padding: 32px;
+            background: rgba(8, 8, 8, 0.7);
+            backdrop-filter: blur(6px);
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.2s ease;
+            transition: opacity 0.25s ease;
             z-index: 100;
         }
 
@@ -339,13 +445,12 @@
         }
 
         .modal-dialog {
-            width: 100%;
-            max-width: 560px;
-            background: rgba(15, 23, 42, 0.95);
-            border-radius: 24px;
-            border: 1px solid rgba(148, 163, 184, 0.25);
-            box-shadow: 0 35px 60px -25px rgba(15, 23, 42, 0.65);
-            padding: 28px 32px;
+            width: min(520px, 100%);
+            background: var(--card-highlight);
+            border-radius: 28px;
+            padding: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: var(--shadow);
             position: relative;
         }
 
@@ -353,19 +458,19 @@
             position: absolute;
             top: 18px;
             right: 18px;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: rgba(148, 163, 184, 0.15);
             border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.35);
             color: var(--text);
+            font-size: 20px;
             cursor: pointer;
-            font-size: 18px;
         }
 
         .modal h3 {
             margin: 0 0 8px;
-            font-size: 22px;
+            font-size: 26px;
         }
 
         .modal-subtitle {
@@ -379,38 +484,38 @@
         }
 
         .form-row {
-            display: flex;
-            flex-direction: column;
+            display: grid;
             gap: 8px;
         }
 
         label {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
         }
 
-        input, select {
-            border-radius: 12px;
-            border: 1px solid rgba(148, 163, 184, 0.25);
-            background: rgba(15, 23, 42, 0.65);
+        input {
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(0, 0, 0, 0.55);
             color: var(--text);
-            padding: 12px 14px;
-            font-size: 15px;
-            transition: border 0.2s ease, box-shadow 0.2s ease;
+            padding: 12px 16px;
+            font-size: 16px;
         }
 
         input:focus {
-            border-color: rgba(34, 211, 238, 0.65);
-            box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.16);
             outline: none;
+            border-color: rgba(217, 192, 98, 0.65);
+            box-shadow: 0 0 0 4px rgba(217, 192, 98, 0.15);
         }
 
         .price-hint {
-            padding: 12px 14px;
-            border-radius: 12px;
-            background: rgba(34, 211, 238, 0.12);
-            border: 1px solid rgba(34, 211, 238, 0.25);
-            color: rgba(248, 250, 252, 0.85);
+            padding: 12px 16px;
+            border-radius: 16px;
+            background: rgba(217, 192, 98, 0.08);
+            border: 1px solid rgba(217, 192, 98, 0.25);
+            color: var(--muted);
             font-size: 14px;
         }
 
@@ -420,258 +525,263 @@
         }
 
         .submit-button {
-            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-            color: var(--text);
-            padding: 14px 20px;
-            border-radius: 14px;
             border: none;
-            font-size: 16px;
+            border-radius: 18px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            color: #1a1405;
             font-weight: 600;
+            font-size: 16px;
             cursor: pointer;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .submit-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 18px 35px -18px rgba(14, 165, 233, 0.9);
+            box-shadow: 0 18px 30px -18px rgba(217, 192, 98, 0.75);
         }
 
-        @media (max-width: 640px) {
-            body {
-                padding: 24px 12px;
-            }
+        @media (max-width: 768px) {
+            .hero { padding: 32px 18px 56px; }
+            .content { margin-top: -100px; padding: 0 18px 80px; }
+            .card { padding: 26px; }
+            .slot-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+        }
 
-            .quest-card {
-                padding: 24px;
-            }
-
-            .modal-dialog {
-                padding: 24px;
-            }
+        @media (max-width: 540px) {
+            .hero__meta { gap: 8px; }
+            .hero__meta span { padding: 10px 12px; font-size: 12px; }
+            .date-pill { min-width: 96px; padding: 12px 14px; }
+            .slot-button { padding: 16px; }
         }
     </style>
 </head>
 <body>
-<div class="page">
-    <a href="{{ url()->previous() ?? route('quests.index') }}" class="back-link">&larr; Назад к квестам</a>
+@php
+    $backgroundUrl = $quest->background_image ? asset($quest->background_image) : asset('images/quest-default.jpg');
+    $weekdayShortLabels = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+    $monthShortLabels = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+    $initialDateRaw = old('booking_date', now()->toDateString());
+    try {
+        $initialDateCarbon = \Illuminate\Support\Carbon::createFromFormat('Y-m-d', $initialDateRaw);
+    } catch (\Throwable $exception) {
+        $initialDateCarbon = now();
+        $initialDateRaw = $initialDateCarbon->toDateString();
+    }
 
-    <div class="quest-card">
-        <div class="quest-header">
-            <h1>{{ $quest->name }}</h1>
-            <div class="quest-meta">
+    $quest->slots->each(function ($slot) use ($quest) {
+        $slot->setRelation('quest', $quest);
+    });
+@endphp
+<div class="page">
+    <header class="hero" style="background-image: url('{{ $backgroundUrl }}');">
+        <div class="hero__content">
+            <a href="{{ url()->previous() ?? route('quests.index') }}" class="hero__breadcrumbs">&larr; Вернуться к квестам</a>
+            <h1 class="hero__title">{{ $quest->name }}</h1>
+            <div class="hero__meta">
                 <span>Жанр: {{ $quest->genreId }}</span>
                 <span>Сложность: {{ $quest->difficultyId }}</span>
                 <span>Игроки: {{ $quest->players_count }}</span>
-                <span>Длительность: {{ $quest->game_time }}</span>
+                <span>Время: {{ $quest->game_time }}</span>
             </div>
         </div>
+    </header>
 
-        @if(session('status'))
-            <div class="status">{{ session('status') }}</div>
-        @endif
+    <main class="content">
+        <div class="deck">
+            <article class="card card--highlight">
+                @if(session('status'))
+                    <div class="status-banner">{{ session('status') }}</div>
+                @endif
 
-        @if($errors->any())
-            <div class="errors">
-                <strong>Не получилось забронировать слот:</strong>
-                <ul>
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
+                @if($errors->any())
+                    <div class="error-banner">
+                        <strong>Не получилось забронировать слот:</strong>
+                        <ul>
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <div class="details-grid">
+                    <section>
+                        <h3>Описание</h3>
+                        <p>{{ $quest->description }}</p>
+                    </section>
+                    <section>
+                        <h3>Правила</h3>
+                        <p>{{ $quest->rules }}</p>
+                    </section>
+                    <section>
+                        <h3>Безопасность</h3>
+                        <p>{{ $quest->safety }}</p>
+                    </section>
+                    <section>
+                        <h3>Дополнительно</h3>
+                        <p>Услуги: {{ $quest->additional_services }}</p>
+                        <p>Дополнительные игроки: {{ $quest->additional_players }}</p>
+                        <p>Цена за дополнительного игрока: {{ number_format($quest->price_per_additional_player, 0, '.', ' ') }} ₽</p>
+                    </section>
+                </div>
+            </article>
+
+            <article
+                class="card"
+                data-schedule-section
+            >
+                <div
+                    class="schedule slot-section"
+                    data-weekday-base="{{ $quest->weekday_base_price }}"
+                    data-weekend-base="{{ $quest->weekend_base_price }}"
+                    data-schedule-endpoint="{{ route('quests.schedule', $quest->id) }}"
+                    data-initial-date="{{ $initialDateRaw }}"
+                >
+                    <div class="schedule__heading">
+                        <div>
+                            <h2>Расписание</h2>
+                            <p class="card__subtitle" data-schedule-heading>{{ $initialDateCarbon->isoFormat('D MMMM, dddd') }}</p>
+                        </div>
+                        <button type="button" data-open-picker>Выбрать дату</button>
+                        <input type="date" id="schedule-date-picker" class="date-picker" value="{{ $initialDateRaw }}" style="position:absolute;left:-9999px;opacity:0;">
+                    </div>
+
+                    <div class="date-strip">
+                        @foreach($dateOptions as $option)
+                            @php
+                                $isSelected = $option->isSameDay($initialDateCarbon);
+                            @endphp
+                            <button
+                                type="button"
+                                class="date-pill {{ $isSelected ? 'is-selected' : '' }}"
+                                data-date-button
+                                data-date="{{ $option->toDateString() }}"
+                            >
+                                <span class="date-pill__weekday">{{ $weekdayShortLabels[$option->dayOfWeek] }}</span>
+                                <span class="date-pill__date">{{ $option->format('d') }}</span>
+                                <span class="date-pill__month">{{ $monthShortLabels[$option->month - 1] }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+
+                    <div class="schedule__grid">
+                        <div class="schedule-error" data-schedule-error>Не удалось загрузить расписание. Попробуйте выбрать дату ещё раз.</div>
+                        <div class="slot-grid">
+                            @foreach($quest->slots as $slot)
+                                @php
+                                    $timeFormatted = \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->time)->format('H:i');
+                                    $priceForInitial = $slot->priceForDate($initialDateCarbon);
+                                    $isWeekendInitial = $initialDateCarbon->isWeekend();
+                                    $isEnabledInitial = $isWeekendInitial ? $slot->weekend_enabled : $slot->weekday_enabled;
+                                @endphp
+                                <button
+                                    type="button"
+                                    class="slot-button {{ $isEnabledInitial ? '' : 'slot-button--unavailable' }}"
+                                    data-slot-button
+                                    data-slot-id="{{ $slot->id }}"
+                                    data-time="{{ $timeFormatted }}"
+                                    data-weekday-price="{{ $slot->weekday_price }}"
+                                    data-weekend-price="{{ $slot->weekend_price }}"
+                                    data-weekday-enabled="{{ $slot->weekday_enabled ? 'true' : 'false' }}"
+                                    data-weekend-enabled="{{ $slot->weekend_enabled ? 'true' : 'false' }}"
+                                    data-weekday-uses-base-price="{{ $slot->weekday_uses_base_price ? 'true' : 'false' }}"
+                                    data-weekend-uses-base-price="{{ $slot->weekend_uses_base_price ? 'true' : 'false' }}"
+                                    data-is-discount="{{ $slot->is_discount ? 'true' : 'false' }}"
+                                    data-discount-price="{{ $slot->discount_price }}"
+                                >
+                                    <span class="slot-button__time">{{ $timeFormatted }}</span>
+                                    <span class="slot-button__status">{{ $isEnabledInitial ? 'Доступно' : 'Выключено' }}</span>
+                                    <span class="slot-button__price">от {{ number_format($priceForInitial, 0, '.', ' ') }} ₽</span>
+                                </button>
+                            @endforeach
+                        </div>
+                        <div class="schedule__legend">
+                            <span><span class="legend-dot available"></span> свободно</span>
+                            <span><span class="legend-dot booked"></span> занято</span>
+                            <span><span class="legend-dot closed"></span> недоступно</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="card guest-card">
+                <h3>Карточка гостя</h3>
+                <p class="card__subtitle">Мы создадим личный кабинет по номеру телефона, чтобы вы могли управлять бронями.</p>
+                <div class="guest-card__grid">
+                    <div class="guest-card__item">
+                        <strong>Как это работает</strong>
+                        <p>Вы выбираете удобное время, оставляете имя и телефон. Мы пришлём доступ в личный кабинет, где можно отслеживать и переносить брони.</p>
+                    </div>
+                    <div class="guest-card__item">
+                        <strong>Контроль оплаты</strong>
+                        <p>Стоимость рассчитывается автоматически — будни и выходные учитываются отдельно, а для отдельных слотов можно включить спеццену.</p>
+                    </div>
+                    <div class="guest-card__item">
+                        <strong>Поддержка 24/7</strong>
+                        <p>Если планы поменялись, просто позвоните нам. Мы поможем перенести бронь без потери оплаты.</p>
+                    </div>
+                </div>
+            </article>
+
+            @php
+                $stories = [
+                    ['title' => 'Команда “Сигма” праздновала день рождения', 'text' => 'Подарочный сертификат, персональный ведущий и маскарад — всё в одном квесте.', 'meta' => '12.03.2025'],
+                    ['title' => 'Новая акция ко Дню космонавтики', 'text' => 'Скидка 15% на все слоты до 12:00. Используйте промокод SPACE.', 'meta' => '05.04.2025'],
+                    ['title' => 'Обновили сценарий “Лабиринта”', 'text' => 'Добавили альтернативную концовку и новые головоломки для опытных команд.', 'meta' => '28.02.2025'],
+                ];
+            @endphp
+            <article class="card stories">
+                <div class="schedule__heading">
+                    <div>
+                        <h2 class="card__title">Новости и акции</h2>
+                        <p class="card__subtitle">Следите за обновлениями, чтобы не пропустить бонусы и новые сценарии.</p>
+                    </div>
+                </div>
+                <div class="stories__list">
+                    @foreach($stories as $story)
+                        <div class="story-card">
+                            <div class="story-card__meta">
+                                <span>{{ $story['meta'] }}</span>
+                                <span>Новости</span>
+                            </div>
+                            <h3 class="story-card__title">{{ $story['title'] }}</h3>
+                            <p class="story-card__text">{{ $story['text'] }}</p>
+                        </div>
                     @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <div class="quest-description">
-            <section>
-                <h2>Описание</h2>
-                <p>{{ $quest->description }}</p>
-            </section>
-            <section>
-                <h2>Правила</h2>
-                <p>{{ $quest->rules }}</p>
-            </section>
-            <section>
-                <h2>Безопасность</h2>
-                <p>{{ $quest->safety }}</p>
-            </section>
-            <section>
-                <h2>Дополнительно</h2>
-                <p>Доп. услуги: {{ $quest->additional_services }}</p>
-                <p>Доп. игроки: {{ $quest->additional_players }}</p>
-                <p>Цена за доп. игрока: {{ number_format($quest->price_per_additional_player, 0, '.', ' ') }} ₽</p>
-            </section>
+                </div>
+            </article>
         </div>
 
-        @php
-            $weekdayShortLabels = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
-            $weekdayFullLabels = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
-            $monthShortLabels = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-            $monthFullLabels = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-            $initialDateRaw = old('booking_date', now()->toDateString());
-            try {
-                $initialDateCarbon = \Illuminate\Support\Carbon::createFromFormat('Y-m-d', $initialDateRaw);
-            } catch (\Exception $exception) {
-                $initialDateCarbon = now();
-                $initialDateRaw = $initialDateCarbon->toDateString();
-            }
-            $initialDate = $initialDateRaw;
-        @endphp
-
-        <div
-            class="slot-section"
-            data-weekday-base="{{ $quest->weekday_base_price }}"
-            data-weekend-base="{{ $quest->weekend_base_price }}"
-            data-initial-date="{{ $initialDate }}"
-            data-schedule-endpoint="{{ route('quests.schedule', ['id' => $quest->id]) }}"
-        >
-            <h2>Выберите время</h2>
-            <p>Кликните по доступному времени, чтобы открыть окно бронирования и создать личный кабинет гостя.</p>
-
-            @if($quest->slots->isEmpty())
-                <div class="empty-slots">Для этого квеста пока не добавлены расписания. Свяжитесь с администратором.</div>
-            @else
-                <div class="date-strip" data-date-strip>
-                    @foreach($dateOptions as $dateOption)
-                        @php
-                            $dateString = $dateOption->toDateString();
-                            $weekdayShort = $weekdayShortLabels[$dateOption->dayOfWeek];
-                            $monthShort = $monthShortLabels[$dateOption->month - 1];
-                        @endphp
-                        <button
-                            type="button"
-                            class="date-pill {{ $dateString === $initialDate ? 'is-selected' : '' }}"
-                            data-date-button
-                            data-date="{{ $dateString }}"
-                        >
-                            <span class="date-pill__day">{{ mb_strtoupper($weekdayShort, 'UTF-8') }}</span>
-                            <span class="date-pill__date">{{ $dateOption->format('d') }} {{ $monthShort }}</span>
-                        </button>
-                    @endforeach
-                    <button type="button" class="date-pill date-pill--picker" data-open-picker>Выбрать дату</button>
-                    <input
-                        type="date"
-                        class="date-picker"
-                        id="schedule-date-picker"
-                        min="{{ now()->toDateString() }}"
-                        value="{{ $initialDate }}"
-                    >
-                </div>
-
-                <p data-schedule-heading>
-                    Расписание на {{ $initialDateCarbon->format('d') }} {{ $monthFullLabels[$initialDateCarbon->month - 1] }}, {{ $weekdayFullLabels[$initialDateCarbon->dayOfWeek] }}
-                </p>
-
-                <div class="slot-legend" data-slot-legend>
-                    <span><span class="slot-legend-dot available"></span> свободно</span>
-                    <span><span class="slot-legend-dot booked"></span> занято</span>
-                    <span><span class="slot-legend-dot closed"></span> не работает</span>
-                </div>
-
-                <div class="schedule-error" data-schedule-error>Не удалось загрузить расписание. Попробуйте ещё раз.</div>
-
-                <div class="slot-grid">
-                    @foreach($quest->slots as $slot)
-                        @php
-                            $timeLabel = \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->time)->format('H:i');
-                            $weekdayPrice = $slot->weekday_uses_base_price ? $quest->weekday_base_price : $slot->weekday_price;
-                            $weekendPrice = $slot->weekend_uses_base_price ? $quest->weekend_base_price : $slot->weekend_price;
-                            $isActive = $slot->weekday_enabled || $slot->weekend_enabled;
-                        @endphp
-                        @if(!$isActive)
-                            @continue
-                        @endif
-                        <button
-                            type="button"
-                            class="slot-button"
-                            data-slot-button
-                            data-slot-id="{{ $slot->id }}"
-                            data-time="{{ $timeLabel }}"
-                            data-weekday-price="{{ $weekdayPrice }}"
-                            data-weekend-price="{{ $weekendPrice }}"
-                            data-weekday-enabled="{{ $slot->weekday_enabled ? 'true' : 'false' }}"
-                            data-weekend-enabled="{{ $slot->weekend_enabled ? 'true' : 'false' }}"
-                            data-weekday-uses-base-price="{{ $slot->weekday_uses_base_price ? 'true' : 'false' }}"
-                            data-weekend-uses-base-price="{{ $slot->weekend_uses_base_price ? 'true' : 'false' }}"
-                            data-is-discount="{{ $slot->is_discount ? 'true' : 'false' }}"
-                            data-discount-price="{{ $slot->discount_price ?? '' }}"
-                        >
-                            <span class="slot-button__time">{{ $timeLabel }}</span>
-                            <span class="slot-button__status" data-slot-status>Выберите дату</span>
-                            <span class="slot-button__price" data-slot-price>
-                                Будни: {{ $slot->weekday_enabled ? number_format($weekdayPrice, 0, '.', ' ') . ' ₽' : '—' }} ·
-                                Выходные: {{ $slot->weekend_enabled ? number_format($weekendPrice, 0, '.', ' ') . ' ₽' : '—' }}
-                                @if($slot->is_discount && $slot->discount_price)
-                                    · Скидка: {{ number_format($slot->discount_price, 0, '.', ' ') }} ₽
-                                @endif
-                            </span>
-                        </button>
-                    @endforeach
-                </div>
-            @endif
-        </div>
-
-    </div>
+        <footer>© {{ date('Y') }} Pandoroom. Все права защищены.</footer>
+    </main>
 </div>
 
-<div id="booking-modal" class="modal" data-should-open="{{ old('quest_slot_id') ? 'true' : 'false' }}">
+<div id="booking-modal" class="modal" data-should-open="{{ $errors->any() ? 'true' : 'false' }}">
     <div class="modal-dialog">
-        <button type="button" class="modal-close" data-modal-close aria-label="Закрыть">×</button>
-        <h3>Бронирование квеста</h3>
-        <p class="modal-subtitle">Заполните данные гостя — мы создадим для него личный кабинет и закрепим выбранный слот.</p>
-
-        <form action="{{ route('quests.book', ['id' => $quest->id]) }}" method="POST" id="booking-form">
+        <button class="modal-close" type="button" data-close-modal>&times;</button>
+        <h3>Бронирование</h3>
+        <p class="modal-subtitle">Выбранный слот: <span id="modal-slot-summary">—</span></p>
+        <form method="POST" action="{{ route('quests.book', $quest->id) }}">
             @csrf
             <input type="hidden" name="quest_slot_id" id="modal-slot-id" value="{{ old('quest_slot_id') }}">
+            <input type="hidden" name="booking_date" id="modal-booking-date" value="{{ old('booking_date', $initialDateRaw) }}">
 
-            <div class="price-hint" id="modal-price-hint">
-                Выберите время, чтобы увидеть стоимость.
-            </div>
-
-            <div class="form-row">
-                <label for="modal-booking-date">Дата посещения</label>
-                <input
-                    type="date"
-                    id="modal-booking-date"
-                    name="booking_date"
-                    min="{{ now()->toDateString() }}"
-                    value="{{ old('booking_date', now()->toDateString()) }}"
-                    required
-                >
-                @error('booking_date')
-                    <span class="error-text">{{ $message }}</span>
-                @enderror
-            </div>
+            <div class="price-hint" id="modal-price-hint">Выберите время, чтобы увидеть стоимость.</div>
 
             <div class="form-row">
-                <label>Выбранный слот</label>
-                <input type="text" id="modal-slot-summary" readonly placeholder="Нажмите на время в расписании" />
-                @error('quest_slot_id')
-                    <span class="error-text">{{ $message }}</span>
-                @enderror
-            </div>
-
-            <div class="form-row">
-                <label for="customer_name">Имя и фамилия гостя</label>
+                <label for="customer_name">Имя гостя</label>
                 <input type="text" id="customer_name" name="customer_name" value="{{ old('customer_name') }}" required>
-                @error('customer_name')
-                    <span class="error-text">{{ $message }}</span>
-                @enderror
             </div>
 
             <div class="form-row">
-                <label for="customer_phone">Телефон</label>
-                <input type="tel" id="customer_phone" name="customer_phone" value="{{ old('customer_phone') }}" required>
-                @error('customer_phone')
-                    <span class="error-text">{{ $message }}</span>
-                @enderror
+                <label for="customer_phone">Номер телефона</label>
+                <input type="text" id="customer_phone" name="customer_phone" value="{{ old('customer_phone') }}" required>
             </div>
 
             <div class="form-row">
                 <label for="password">Пароль</label>
                 <input type="password" id="password" name="password" required>
-                @error('password')
-                    <span class="error-text">{{ $message }}</span>
-                @enderror
             </div>
 
             <div class="form-row">
@@ -798,164 +908,70 @@
             currentSchedule = schedule;
             const bookings = Array.isArray(schedule.bookings) ? schedule.bookings : [];
             const bookedIds = new Set(bookings.map((booking) => String(booking.quest_slot_id)));
-            const isWeekend = Boolean(schedule.is_weekend);
 
             slotButtons.forEach((button) => {
+                const slotId = button.dataset.slotId;
                 const slotData = parseSlotDataset(button.dataset);
-                const statusLabel = button.querySelector('[data-slot-status]');
-                const priceLabel = button.querySelector('[data-slot-price]');
-                const availableByDay = isWeekend ? slotData.weekendEnabled : slotData.weekdayEnabled;
-                const isBooked = bookedIds.has(String(slotData.id));
-                const available = availableByDay && !isBooked;
+                const isWeekend = Boolean(schedule.is_weekend);
+                const isEnabled = isWeekend ? slotData.weekendEnabled : slotData.weekdayEnabled;
+
+                button.classList.remove('slot-button--unavailable', 'slot-button--booked');
+
+                if (!isEnabled) {
+                    button.classList.add('slot-button--unavailable');
+                    button.querySelector('.slot-button__status').textContent = 'Выключено';
+                } else if (bookedIds.has(String(slotId))) {
+                    button.classList.add('slot-button--booked');
+                    button.querySelector('.slot-button__status').textContent = 'Занято';
+                } else {
+                    button.querySelector('.slot-button__status').textContent = 'Доступно';
+                }
+
                 const price = slotData.isDiscount && slotData.discountPrice
                     ? slotData.discountPrice
                     : resolveEffectivePrice(slotData, isWeekend);
 
-                if (statusLabel) {
-                    statusLabel.textContent = isBooked
-                        ? 'Занято'
-                        : (availableByDay ? 'Свободно' : 'Не работает');
-                }
-
-                if (priceLabel) {
-                    priceLabel.textContent = availableByDay ? formatCurrency(price) : '—';
-                }
-
-                button.disabled = !available;
-                button.classList.toggle('slot-button--unavailable', !available);
-                button.classList.toggle('slot-button--booked', isBooked);
-
-                if (!available) {
-                    button.setAttribute('aria-disabled', 'true');
-                } else {
-                    button.removeAttribute('aria-disabled');
+                const priceEl = button.querySelector('.slot-button__price');
+                if (priceEl) {
+                    priceEl.textContent = `от ${formatCurrency(price)}`;
                 }
             });
-
-            if (activeSlot) {
-                const refreshedButton = document.querySelector(`[data-slot-id="${activeSlot.id}"]`);
-                if (!refreshedButton || refreshedButton.disabled) {
-                    activeSlot = null;
-                    slotSummaryInput.value = '';
-                    slotIdInput.value = '';
-                }
-            }
-
-            priceHint.textContent = computePriceText(activeSlot);
         };
 
-        const updateHeading = (dateStr) => {
-            if (!scheduleHeading) {
-                return;
-            }
-
-            scheduleHeading.textContent = `Расписание на ${formatHeading(dateStr)}`;
-        };
-
-        const loadSchedule = async (dateStr) => {
-            if (!scheduleEndpoint || !dateStr) {
+        const fetchSchedule = async (date) => {
+            if (!scheduleEndpoint) {
                 return null;
             }
 
-            if (scheduleError) {
-                scheduleError.classList.remove('is-visible');
-            }
-
-            if (scheduleCache.has(dateStr)) {
-                const cached = scheduleCache.get(dateStr);
-                selectedDate = cached.date;
-                bookingDateInput.value = cached.date;
-                if (datePicker) {
-                    datePicker.value = cached.date;
-                }
-                updateHeading(cached.date);
-                applySchedule(cached);
-                return cached;
+            if (scheduleCache.has(date)) {
+                return scheduleCache.get(date);
             }
 
             try {
-                const response = await fetch(`${scheduleEndpoint}?date=${encodeURIComponent(dateStr)}`, {
-                    headers: { 'Accept': 'application/json' },
-                });
-
+                const response = await fetch(`${scheduleEndpoint}?date=${encodeURIComponent(date)}`);
                 if (!response.ok) {
-                    throw new Error('Schedule request failed');
+                    throw new Error('Bad response');
                 }
 
                 const data = await response.json();
-                scheduleCache.set(data.date, data);
-                selectedDate = data.date;
-                bookingDateInput.value = data.date;
-                if (datePicker) {
-                    datePicker.value = data.date;
-                }
-                dateButtons.forEach((button) => {
-                    button.classList.toggle('is-selected', button.dataset.date === data.date);
-                });
-                updateHeading(data.date);
-                applySchedule(data);
-
+                scheduleCache.set(date, data);
                 return data;
             } catch (error) {
                 console.error(error);
-                if (scheduleError) {
-                    scheduleError.classList.add('is-visible');
-                }
                 return null;
             }
         };
 
-        const setSelectedDate = (dateStr, { skipRequest = false, preserveSelection = false } = {}) => {
-            if (!dateStr) {
-                return Promise.resolve(null);
-            }
-
-            selectedDate = dateStr;
-            bookingDateInput.value = dateStr;
-            if (datePicker) {
-                datePicker.value = dateStr;
-            }
-            dateButtons.forEach((button) => {
-                button.classList.toggle('is-selected', button.dataset.date === dateStr);
-            });
-            updateHeading(dateStr);
-
-            if (!preserveSelection) {
-                activeSlot = null;
-                slotSummaryInput.value = '';
-                slotIdInput.value = '';
-                priceHint.textContent = 'Выберите время, чтобы увидеть стоимость.';
-            }
-
-            if (skipRequest) {
-                return Promise.resolve(currentSchedule);
-            }
-
-            return loadSchedule(dateStr);
-        };
-
-        const openModal = (slotData) => {
-            if (!currentSchedule) {
-                priceHint.textContent = 'Выберите дату, чтобы увидеть стоимость.';
-                return;
-            }
-
-            const bookings = Array.isArray(currentSchedule.bookings) ? currentSchedule.bookings : [];
-            const isBooked = bookings.some((booking) => Number(booking.quest_slot_id) === slotData.id);
-            const isWeekend = Boolean(currentSchedule.is_weekend);
-            const availableByDay = isWeekend ? slotData.weekendEnabled : slotData.weekdayEnabled;
-
-            if (!availableByDay || isBooked) {
-                priceHint.textContent = computePriceText(slotData);
-                return;
-            }
-
+        const openModalForSlot = (button) => {
+            const slotData = parseSlotDataset(button.dataset);
             activeSlot = slotData;
+
+            const summary = `${slotData.time}, ${formatSummaryDate(selectedDate)}`;
+            slotSummaryInput.textContent = summary;
             slotIdInput.value = slotData.id;
-            const summaryDate = formatSummaryDate(currentSchedule.date || selectedDate);
-            slotSummaryInput.value = `${slotData.time} · ${summaryDate}`;
+            bookingDateInput.value = selectedDate;
             priceHint.textContent = computePriceText(slotData);
-            bookingDateInput.value = currentSchedule.date || selectedDate;
+
             modal.classList.add('is-visible');
         };
 
@@ -965,25 +981,57 @@
 
         slotButtons.forEach((button) => {
             button.addEventListener('click', () => {
-                const slotData = parseSlotDataset(button.dataset);
-                openModal(slotData);
+                if (button.classList.contains('slot-button--unavailable') || button.classList.contains('slot-button--booked')) {
+                    return;
+                }
+
+                openModalForSlot(button);
             });
         });
 
-        document.querySelectorAll('[data-modal-close]').forEach((element) => {
-            element.addEventListener('click', closeModal);
-        });
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && modal.classList.contains('is-visible')) {
-                closeModal();
-            }
+        document.querySelectorAll('[data-close-modal]').forEach((button) => {
+            button.addEventListener('click', closeModal);
         });
 
         modal.addEventListener('click', (event) => {
             if (event.target === modal) {
                 closeModal();
             }
+        });
+
+        const activateDateButton = (date) => {
+            dateButtons.forEach((button) => {
+                button.classList.toggle('is-selected', button.dataset.date === date);
+            });
+        };
+
+        const handleDateChange = async (date) => {
+            selectedDate = date;
+            activateDateButton(date);
+            if (scheduleHeading) {
+                scheduleHeading.textContent = formatHeading(date);
+            }
+            if (bookingDateInput) {
+                bookingDateInput.value = date;
+            }
+
+            const schedule = await fetchSchedule(date);
+            if (!schedule) {
+                if (scheduleError) {
+                    scheduleError.classList.add('is-visible');
+                }
+                return;
+            }
+
+            if (scheduleError) {
+                scheduleError.classList.remove('is-visible');
+            }
+            applySchedule(schedule);
+            priceHint.textContent = computePriceText(activeSlot);
+        };
+
+        dateButtons.forEach((button) => {
+            button.addEventListener('click', () => handleDateChange(button.dataset.date));
         });
 
         if (manualPickerTrigger && datePicker) {
@@ -995,34 +1043,29 @@
                     datePicker.click();
                 }
             });
-        }
-
-        if (datePicker) {
-            datePicker.addEventListener('change', () => {
-                setSelectedDate(datePicker.value);
+            datePicker.addEventListener('change', (event) => {
+                if (!event.target.value) {
+                    return;
+                }
+                handleDateChange(event.target.value);
             });
         }
 
-        bookingDateInput.addEventListener('change', () => {
-            setSelectedDate(bookingDateInput.value);
-        });
-
-        dateButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                setSelectedDate(button.dataset.date);
-            });
-        });
-
-        const fallbackDate = selectedDate || bookingDateInput.value || new Date().toISOString().slice(0, 10);
-
-        setSelectedDate(fallbackDate, { preserveSelection: true }).then(() => {
-            if (shouldRestoreModal && initialSlotId) {
-                const initialButton = document.querySelector(`[data-slot-id="${initialSlotId}"]`);
-                if (initialButton && !initialButton.disabled) {
-                    initialButton.click();
+        if (initialSlotId) {
+            const matchedButton = slotButtons.find((button) => Number(button.dataset.slotId) === Number(initialSlotId));
+            if (matchedButton) {
+                activeSlot = parseSlotDataset(matchedButton.dataset);
+                slotSummaryInput.textContent = `${activeSlot.time}, ${formatSummaryDate(selectedDate)}`;
+                priceHint.textContent = computePriceText(activeSlot);
+                if (shouldRestoreModal) {
+                    modal.classList.add('is-visible');
                 }
             }
-        });
+        }
+
+        if (initialDate) {
+            handleDateChange(initialDate);
+        }
     });
 </script>
 </body>

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Quest;
 use App\QuestBooking;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 
 class AdminBookingController extends Controller
@@ -23,27 +25,64 @@ class AdminBookingController extends Controller
 
         $direction = strtolower($request->query('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
 
-        $query = QuestBooking::query()
-            ->with(['quest', 'slot'])
-            ->whereDate('booking_date', '>=', now()->toDateString());
+        $startDate = Carbon::now()->startOfDay();
+        $endDate = $startDate->copy()->addDays(13);
 
-        $query->orderBy($sort, $direction);
+        $quests = Quest::orderBy('name')->get();
+        $selectedQuestId = (int) $request->query('quest_id');
+        $selectedQuest = $quests->firstWhere('id', $selectedQuestId) ?? $quests->first();
 
-        if ($sort !== 'booking_date') {
-            $query->orderBy('booking_date');
+        $slots = collect();
+        $calendarBookings = collect();
+
+        if ($selectedQuest) {
+            $slots = $selectedQuest->slots()->orderBy('time')->get();
+            $slots->each(function ($slot) use ($selectedQuest) {
+                $slot->setRelation('quest', $selectedQuest);
+            });
+
+            $calendarBookings = QuestBooking::with(['slot', 'user'])
+                ->where('quest_id', $selectedQuest->id)
+                ->whereBetween('booking_date', [$startDate->toDateString(), $endDate->toDateString()])
+                ->get()
+                ->groupBy(function (QuestBooking $booking) {
+                    return sprintf('%s|%s', $booking->booking_date->format('Y-m-d'), $booking->quest_slot_id);
+                });
         }
 
-        $query->orderBy('quest_slot_id');
+        $dateRange = collect(range(0, 13))->map(function (int $offset) use ($startDate) {
+            return $startDate->copy()->addDays($offset);
+        });
 
-        $bookings = $query->paginate(20)->appends([
+        $listQuery = QuestBooking::query()
+            ->with(['quest', 'slot'])
+            ->whereDate('booking_date', '>=', $startDate->toDateString());
+
+        $listQuery->orderBy($sort, $direction);
+
+        if ($sort !== 'booking_date') {
+            $listQuery->orderBy('booking_date');
+        }
+
+        $listQuery->orderBy('quest_slot_id');
+
+        $bookings = $listQuery->paginate(20)->appends([
             'sort' => $sort,
             'direction' => $direction,
+            'quest_id' => $selectedQuest ? $selectedQuest->id : null,
         ]);
 
         return view('admin.bookings', [
             'bookings' => $bookings,
             'sort' => $sort,
             'direction' => $direction,
+            'quests' => $quests,
+            'selectedQuest' => $selectedQuest,
+            'dateRange' => $dateRange,
+            'slots' => $slots,
+            'calendarBookings' => $calendarBookings,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
         ]);
     }
 }
