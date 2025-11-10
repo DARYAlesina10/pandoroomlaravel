@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Quest;
+use App\QuestBooking;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class QuestController extends Controller
 {
@@ -17,18 +19,49 @@ class QuestController extends Controller
     {
         $quest = Quest::with(['slots' => function ($query) {
             $query->orderBy('time');
-        }])->findOrFail($id); // Находим квест по ID или выбрасываем ошибку, если не найден
+        }])->findOrFail($id);
 
-        $upcomingBookings = $quest->bookings()
-            ->with(['slot', 'user'])
-            ->whereDate('booking_date', '>=', now()->toDateString())
-            ->orderBy('booking_date')
-            ->orderBy('quest_slot_id')
-            ->get();
+        $startDate = Carbon::now()->startOfDay();
+        $dateOptions = collect(range(0, 13))->map(function ($offset) use ($startDate) {
+            return $startDate->copy()->addDays($offset);
+        });
 
         return view('quests.show', [
             'quest' => $quest,
-            'upcomingBookings' => $upcomingBookings,
-        ]); // Возвращаем представление для одного квеста
+            'dateOptions' => $dateOptions,
+        ]);
+    }
+
+    public function schedule(Request $request, $id)
+    {
+        $quest = Quest::with('slots')->findOrFail($id);
+
+        $dateString = $request->query('date', Carbon::now()->toDateString());
+
+        try {
+            $date = Carbon::createFromFormat('Y-m-d', $dateString)->startOfDay();
+        } catch (\Throwable $throwable) {
+            return response()->json([
+                'message' => 'Некорректная дата.',
+            ], 422);
+        }
+
+        $bookings = $quest->bookings()
+            ->whereDate('booking_date', $date->toDateString())
+            ->get()
+            ->map(function (QuestBooking $booking) {
+                return [
+                    'id' => $booking->id,
+                    'quest_slot_id' => $booking->quest_slot_id,
+                    'customer_name' => $booking->customer_name,
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'date' => $date->toDateString(),
+            'is_weekend' => $date->isWeekend(),
+            'bookings' => $bookings,
+        ]);
     }
 }

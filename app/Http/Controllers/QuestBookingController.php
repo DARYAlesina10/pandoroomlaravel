@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class QuestBookingController extends Controller
@@ -24,7 +25,6 @@ class QuestBookingController extends Controller
             'quest_slot_id' => ['required', 'integer'],
             'customer_name' => ['required', 'string', 'max:255'],
             'customer_phone' => ['required', 'string', 'max:50'],
-            'customer_email' => ['required', 'email', 'max:255'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
@@ -64,22 +64,28 @@ class QuestBookingController extends Controller
                 ]);
             }
 
-            $user = User::where('email', $validated['customer_email'])->lockForUpdate()->first();
+            $normalizedPhone = $this->normalizePhone($validated['customer_phone']);
+
+            $user = User::where('phone', $normalizedPhone)->lockForUpdate()->first();
 
             if ($user) {
                 if (!$user->password || !Hash::check($validated['password'], $user->password)) {
                     throw ValidationException::withMessages([
-                        'customer_email' => 'Пользователь с таким email уже существует. Укажите правильный пароль или используйте другой email.',
+                        'customer_phone' => 'Пользователь с таким номером уже существует. Укажите правильный пароль или используйте другой номер телефона.',
                     ]);
                 }
 
                 if ($user->name !== $validated['customer_name']) {
                     $user->forceFill(['name' => $validated['customer_name']])->save();
                 }
+                if ($user->phone !== $normalizedPhone) {
+                    $user->forceFill(['phone' => $normalizedPhone])->save();
+                }
             } else {
                 $user = User::create([
                     'name' => $validated['customer_name'],
-                    'email' => $validated['customer_email'],
+                    'email' => $this->generateGuestEmail($normalizedPhone),
+                    'phone' => $normalizedPhone,
                     'password' => Hash::make($validated['password']),
                     'role' => 'user',
                 ]);
@@ -123,5 +129,35 @@ class QuestBookingController extends Controller
         $slot->loadMissing('quest');
 
         return $slot->priceForDate($date);
+    }
+
+    protected function normalizePhone(string $phone): string
+    {
+        $digits = preg_replace('/\D+/', '', $phone);
+
+        if (!$digits) {
+            return $phone;
+        }
+
+        if (strlen($digits) === 10) {
+            $digits = '7' . $digits;
+        }
+
+        if ($digits[0] === '8' && strlen($digits) === 11) {
+            $digits = '7' . substr($digits, 1);
+        }
+
+        return '+' . $digits;
+    }
+
+    protected function generateGuestEmail(string $normalizedPhone): string
+    {
+        $digits = preg_replace('/\D+/', '', $normalizedPhone);
+
+        if (!$digits) {
+            $digits = Str::random(10);
+        }
+
+        return sprintf('guest.%s@pandoroom.local', $digits);
     }
 }

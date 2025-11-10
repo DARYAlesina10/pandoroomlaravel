@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminBookingController;
 use App\Http\Controllers\AdminQuestController;
 use App\Http\Controllers\AdminQuestScheduleController;
 use App\Http\Controllers\AdminRegisterController;
@@ -19,6 +20,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Маршруты для квестов
 Route::get('/quests', [QuestController::class, 'index'])->name('quests.index');
 Route::get('/quests/{id}', [QuestController::class, 'show'])->name('quests.show');
+Route::get('/quests/{id}/schedule', [QuestController::class, 'schedule'])->name('quests.schedule');
 Route::post('/quests/{id}/book', [QuestBookingController::class, 'store'])->name('quests.book');
 
 // Аутентификация
@@ -35,6 +37,7 @@ Route::middleware(['auth'])->group(function () {
 // Страница администратора (доступна только администраторам)
 Route::middleware(['auth', 'isAdmin'])->group(function () {
     Route::get('/admin/quests', [AdminQuestController::class, 'index'])->name('admin.quests');
+    Route::get('/admin/bookings', [AdminBookingController::class, 'index'])->name('admin.bookings');
     Route::get('/admin/quests/create', [AdminQuestController::class, 'create'])->name('admin.create');
     Route::post('/admin/quests', [AdminQuestController::class, 'store'])->name('admin.store');
     Route::get('/admin/quests/{id}/edit', [AdminQuestController::class, 'edit'])->name('admin.edit');

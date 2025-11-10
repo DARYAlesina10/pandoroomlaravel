@@ -140,6 +140,61 @@
             margin-top: 0;
         }
 
+        .date-strip {
+            display: flex;
+            gap: 8px;
+            padding: 12px 0;
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+
+        .date-pill {
+            border: 1px solid rgba(34, 211, 238, 0.35);
+            background: rgba(34, 211, 238, 0.12);
+            border-radius: 12px;
+            padding: 10px 16px;
+            min-width: 96px;
+            text-align: left;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 14px;
+            transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
+        }
+
+        .date-pill.is-selected {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.35), rgba(14, 165, 233, 0.45));
+            border-color: rgba(14, 165, 233, 0.65);
+            transform: translateY(-2px);
+        }
+
+        .date-pill__day {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 12px;
+            color: rgba(248, 250, 252, 0.75);
+        }
+
+        .date-pill__date {
+            font-size: 15px;
+        }
+
+        .date-pill--picker {
+            background: rgba(148, 163, 184, 0.15);
+            border-color: rgba(148, 163, 184, 0.35);
+        }
+
+        .date-picker {
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+        }
+
         .slot-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -151,14 +206,15 @@
             background: rgba(34, 211, 238, 0.12);
             border: 1px solid rgba(34, 211, 238, 0.35);
             border-radius: 14px;
-            padding: 16px 18px;
+            padding: 18px;
             color: var(--text);
             font-weight: 600;
             font-size: 16px;
             cursor: pointer;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            align-items: flex-start;
+            gap: 10px;
             transition: transform 0.15s ease, box-shadow 0.15s ease, border 0.15s ease;
         }
 
@@ -183,10 +239,26 @@
             border-color: rgba(148, 163, 184, 0.4);
         }
 
-        .slot-button span {
+        .slot-button--booked {
+            border-style: dashed;
+        }
+
+        .slot-button__time {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .slot-button__status {
             font-size: 13px;
-            color: rgba(248, 250, 252, 0.7);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: rgba(248, 250, 252, 0.65);
+        }
+
+        .slot-button__price {
+            font-size: 14px;
             font-weight: 500;
+            color: rgba(248, 250, 252, 0.85);
         }
 
         .empty-slots {
@@ -197,31 +269,53 @@
             color: var(--muted);
         }
 
-        .bookings-card {
-            background: rgba(148, 163, 184, 0.06);
-            border-radius: 18px;
-            padding: 24px;
-            border: 1px solid rgba(148, 163, 184, 0.14);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 12px;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 12px 16px;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.18);
-        }
-
-        th {
-            color: var(--muted);
-            font-weight: 500;
-            font-size: 13px;
+        .slot-legend {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.08em;
+            color: rgba(148, 163, 184, 0.9);
+            margin-bottom: 12px;
+        }
+
+        .slot-legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .slot-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .slot-legend-dot.available {
+            background: var(--accent);
+        }
+
+        .slot-legend-dot.booked {
+            background: var(--danger);
+        }
+
+        .slot-legend-dot.closed {
+            background: rgba(148, 163, 184, 0.5);
+        }
+
+        .schedule-error {
+            background: rgba(248, 113, 113, 0.12);
+            border: 1px solid rgba(248, 113, 113, 0.35);
+            padding: 14px 16px;
+            border-radius: 14px;
+            color: var(--danger);
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .schedule-error.is-visible {
+            display: block;
         }
 
         .modal {
@@ -408,13 +502,73 @@
             </section>
         </div>
 
-        <div class="slot-section" data-weekday-base="{{ $quest->weekday_base_price }}" data-weekend-base="{{ $quest->weekend_base_price }}">
+        @php
+            $weekdayShortLabels = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+            $weekdayFullLabels = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
+            $monthShortLabels = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+            $monthFullLabels = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+            $initialDateRaw = old('booking_date', now()->toDateString());
+            try {
+                $initialDateCarbon = \Illuminate\Support\Carbon::createFromFormat('Y-m-d', $initialDateRaw);
+            } catch (\Exception $exception) {
+                $initialDateCarbon = now();
+                $initialDateRaw = $initialDateCarbon->toDateString();
+            }
+            $initialDate = $initialDateRaw;
+        @endphp
+
+        <div
+            class="slot-section"
+            data-weekday-base="{{ $quest->weekday_base_price }}"
+            data-weekend-base="{{ $quest->weekend_base_price }}"
+            data-initial-date="{{ $initialDate }}"
+            data-schedule-endpoint="{{ route('quests.schedule', ['id' => $quest->id]) }}"
+        >
             <h2>Выберите время</h2>
             <p>Кликните по доступному времени, чтобы открыть окно бронирования и создать личный кабинет гостя.</p>
 
             @if($quest->slots->isEmpty())
                 <div class="empty-slots">Для этого квеста пока не добавлены расписания. Свяжитесь с администратором.</div>
             @else
+                <div class="date-strip" data-date-strip>
+                    @foreach($dateOptions as $dateOption)
+                        @php
+                            $dateString = $dateOption->toDateString();
+                            $weekdayShort = $weekdayShortLabels[$dateOption->dayOfWeek];
+                            $monthShort = $monthShortLabels[$dateOption->month - 1];
+                        @endphp
+                        <button
+                            type="button"
+                            class="date-pill {{ $dateString === $initialDate ? 'is-selected' : '' }}"
+                            data-date-button
+                            data-date="{{ $dateString }}"
+                        >
+                            <span class="date-pill__day">{{ mb_strtoupper($weekdayShort, 'UTF-8') }}</span>
+                            <span class="date-pill__date">{{ $dateOption->format('d') }} {{ $monthShort }}</span>
+                        </button>
+                    @endforeach
+                    <button type="button" class="date-pill date-pill--picker" data-open-picker>Выбрать дату</button>
+                    <input
+                        type="date"
+                        class="date-picker"
+                        id="schedule-date-picker"
+                        min="{{ now()->toDateString() }}"
+                        value="{{ $initialDate }}"
+                    >
+                </div>
+
+                <p data-schedule-heading>
+                    Расписание на {{ $initialDateCarbon->format('d') }} {{ $monthFullLabels[$initialDateCarbon->month - 1] }}, {{ $weekdayFullLabels[$initialDateCarbon->dayOfWeek] }}
+                </p>
+
+                <div class="slot-legend" data-slot-legend>
+                    <span><span class="slot-legend-dot available"></span> свободно</span>
+                    <span><span class="slot-legend-dot booked"></span> занято</span>
+                    <span><span class="slot-legend-dot closed"></span> не работает</span>
+                </div>
+
+                <div class="schedule-error" data-schedule-error>Не удалось загрузить расписание. Попробуйте ещё раз.</div>
+
                 <div class="slot-grid">
                     @foreach($quest->slots as $slot)
                         @php
@@ -439,25 +593,15 @@
                             data-weekday-uses-base-price="{{ $slot->weekday_uses_base_price ? 'true' : 'false' }}"
                             data-weekend-uses-base-price="{{ $slot->weekend_uses_base_price ? 'true' : 'false' }}"
                             data-is-discount="{{ $slot->is_discount ? 'true' : 'false' }}"
-                            data-discount-price="{{ $slot->discount_price }}"
+                            data-discount-price="{{ $slot->discount_price ?? '' }}"
                         >
-                            {{ $timeLabel }}
-                            <span>
-                                будни:
-                                @if($slot->weekday_enabled)
-                                    {{ number_format($weekdayPrice, 0, '.', ' ') }} ₽
-                                @else
-                                    недоступно
-                                @endif
-                                <br>
-                                выходные:
-                                @if($slot->weekend_enabled)
-                                    {{ number_format($weekendPrice, 0, '.', ' ') }} ₽
-                                @else
-                                    недоступно
-                                @endif
+                            <span class="slot-button__time">{{ $timeLabel }}</span>
+                            <span class="slot-button__status" data-slot-status>Выберите дату</span>
+                            <span class="slot-button__price" data-slot-price>
+                                Будни: {{ $slot->weekday_enabled ? number_format($weekdayPrice, 0, '.', ' ') . ' ₽' : '—' }} ·
+                                Выходные: {{ $slot->weekend_enabled ? number_format($weekendPrice, 0, '.', ' ') . ' ₽' : '—' }}
                                 @if($slot->is_discount && $slot->discount_price)
-                                    <br>скидка: {{ number_format($slot->discount_price, 0, '.', ' ') }} ₽
+                                    · Скидка: {{ number_format($slot->discount_price, 0, '.', ' ') }} ₽
                                 @endif
                             </span>
                         </button>
@@ -466,37 +610,6 @@
             @endif
         </div>
 
-        <div class="bookings-card">
-            <h2>Ближайшие бронирования</h2>
-            @if($upcomingBookings->isEmpty())
-                <p style="color: var(--muted);">Пока нет подтверждённых бронирований — будьте первыми!</p>
-            @else
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Дата</th>
-                        <th>Время</th>
-                        <th>Гость</th>
-                        <th>Email</th>
-                        <th>Телефон</th>
-                        <th>Стоимость</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($upcomingBookings as $booking)
-                        <tr>
-                            <td>{{ $booking->booking_date->format('d.m.Y') }}</td>
-                            <td>{{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $booking->slot->time)->format('H:i') }}</td>
-                            <td>{{ $booking->customer_name }}</td>
-                            <td>{{ optional($booking->user)->email ?? '—' }}</td>
-                            <td>{{ $booking->customer_phone }}</td>
-                            <td>{{ number_format($booking->price, 0, '.', ' ') }} ₽</td>
-                        </tr>
-                    @endforeach
-                    </tbody>
-                </table>
-            @endif
-        </div>
     </div>
 </div>
 
@@ -554,14 +667,6 @@
             </div>
 
             <div class="form-row">
-                <label for="customer_email">Email для личного кабинета</label>
-                <input type="email" id="customer_email" name="customer_email" value="{{ old('customer_email') }}" required>
-                @error('customer_email')
-                    <span class="error-text">{{ $message }}</span>
-                @enderror
-            </div>
-
-            <div class="form-row">
                 <label for="password">Пароль</label>
                 <input type="password" id="password" name="password" required>
                 @error('password')
@@ -593,8 +698,25 @@
         const slotSection = document.querySelector('.slot-section');
         const questWeekdayBasePrice = slotSection ? Number(slotSection.dataset.weekdayBase || 0) : 0;
         const questWeekendBasePrice = slotSection ? Number(slotSection.dataset.weekendBase || 0) : 0;
+        const scheduleEndpoint = slotSection ? slotSection.dataset.scheduleEndpoint : null;
+        const initialDate = slotSection ? slotSection.dataset.initialDate : null;
         const slotButtons = Array.from(document.querySelectorAll('[data-slot-button]'));
+        const dateButtons = Array.from(document.querySelectorAll('[data-date-button]'));
+        const datePicker = document.getElementById('schedule-date-picker');
+        const manualPickerTrigger = document.querySelector('[data-open-picker]');
+        const scheduleHeading = document.querySelector('[data-schedule-heading]');
+        const scheduleError = document.querySelector('[data-schedule-error]');
+        const initialSlotId = slotIdInput ? slotIdInput.value : null;
+        const shouldRestoreModal = modal ? modal.dataset.shouldOpen === 'true' : false;
+
+        if (!slotSection || slotButtons.length === 0) {
+            return;
+        }
+
+        const scheduleCache = new Map();
         let activeSlot = null;
+        let currentSchedule = null;
+        let selectedDate = initialDate;
 
         const formatCurrency = (value) => {
             const number = Number(value);
@@ -609,45 +731,30 @@
             }).format(number);
         };
 
-        const parseDateInput = () => {
-            const dateValue = bookingDateInput.value;
-            if (!dateValue) {
-                return null;
-            }
-
-            const [year, month, day] = dateValue.split('-').map(Number);
-            if (!year || !month || !day) {
-                return null;
-            }
-
-            return new Date(year, month - 1, day);
+        const formatHeading = (dateStr) => {
+            const date = new Date(`${dateStr}T00:00:00`);
+            const dayMonth = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+            const weekday = date.toLocaleDateString('ru-RU', { weekday: 'long' });
+            return `${dayMonth}, ${weekday}`;
         };
 
-        const isWeekendDate = (date) => {
-            const day = date.getDay();
-            return day === 0 || day === 6;
+        const formatSummaryDate = (dateStr) => {
+            const date = new Date(`${dateStr}T00:00:00`);
+            return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
         };
 
         const parseSlotDataset = (dataset) => ({
-            id: dataset.slotId,
+            id: Number(dataset.slotId),
             time: dataset.time,
             weekdayPrice: Number(dataset.weekdayPrice ?? 0),
             weekendPrice: Number(dataset.weekendPrice ?? 0),
             isDiscount: dataset.isDiscount === 'true',
-            discountPrice: dataset.discountPrice ? Number(dataset.discountPrice) : null,
+            discountPrice: dataset.discountPrice ? Number(dataset.discountPrice) : 0,
             weekdayEnabled: dataset.weekdayEnabled === 'true',
             weekendEnabled: dataset.weekendEnabled === 'true',
             weekdayUsesBasePrice: dataset.weekdayUsesBasePrice === 'true',
             weekendUsesBasePrice: dataset.weekendUsesBasePrice === 'true',
         });
-
-        const isSlotAvailableOnDate = (slotData, date) => {
-            if (!date) {
-                return slotData.weekdayEnabled || slotData.weekendEnabled;
-            }
-
-            return isWeekendDate(date) ? slotData.weekendEnabled : slotData.weekdayEnabled;
-        };
 
         const resolveEffectivePrice = (slotData, isWeekend) => {
             if (isWeekend) {
@@ -662,72 +769,198 @@
                 return 'Выберите время, чтобы увидеть стоимость.';
             }
 
-            const selectedDate = parseDateInput();
+            if (!currentSchedule) {
+                return 'Выберите дату, чтобы увидеть стоимость.';
+            }
 
-            if (selectedDate && !isSlotAvailableOnDate(slotData, selectedDate)) {
-                return 'Этот слот недоступен на выбранную дату.';
+            const isWeekend = Boolean(currentSchedule.is_weekend);
+            const availableByDay = isWeekend ? slotData.weekendEnabled : slotData.weekdayEnabled;
+
+            if (!availableByDay) {
+                return 'Этот слот не работает в выбранный день.';
+            }
+
+            const bookings = Array.isArray(currentSchedule.bookings) ? currentSchedule.bookings : [];
+            if (bookings.some((booking) => Number(booking.quest_slot_id) === slotData.id)) {
+                return 'Этот слот уже забронирован на выбранную дату.';
             }
 
             if (slotData.isDiscount && slotData.discountPrice) {
                 return `Специальная цена: ${formatCurrency(slotData.discountPrice)}.`;
             }
 
-            const baseWeekdayPrice = resolveEffectivePrice(slotData, false);
-            const baseWeekendPrice = resolveEffectivePrice(slotData, true);
+            const price = resolveEffectivePrice(slotData, isWeekend);
 
-            if (!selectedDate) {
-                const weekdayLabel = slotData.weekdayEnabled ? formatCurrency(baseWeekdayPrice) : 'недоступно';
-                const weekendLabel = slotData.weekendEnabled ? formatCurrency(baseWeekendPrice) : 'недоступно';
-
-                return `Будни: ${weekdayLabel} • Выходные: ${weekendLabel}`;
-            }
-
-            const weekend = isWeekendDate(selectedDate);
-            const price = resolveEffectivePrice(slotData, weekend);
-
-            return `Стоимость бронирования: ${formatCurrency(price)} (${weekend ? 'выходной день' : 'будний день'}).`;
+            return `Стоимость бронирования: ${formatCurrency(price)} (${isWeekend ? 'выходной день' : 'будний день'}).`;
         };
 
-        const openModal = (slotData) => {
-            const selectedDate = parseDateInput();
-
-            if (selectedDate && !isSlotAvailableOnDate(slotData, selectedDate)) {
-                priceHint.textContent = 'Этот слот недоступен на выбранную дату.';
-                return;
-            }
-
-            activeSlot = slotData;
-            slotIdInput.value = slotData.id;
-            slotSummaryInput.value = `${slotData.time}`;
-            priceHint.textContent = computePriceText(slotData);
-            modal.classList.add('is-visible');
-        };
-
-        const closeModal = () => {
-            modal.classList.remove('is-visible');
-        };
-
-        const refreshSlotStates = () => {
-            const selectedDate = parseDateInput();
+        const applySchedule = (schedule) => {
+            currentSchedule = schedule;
+            const bookings = Array.isArray(schedule.bookings) ? schedule.bookings : [];
+            const bookedIds = new Set(bookings.map((booking) => String(booking.quest_slot_id)));
+            const isWeekend = Boolean(schedule.is_weekend);
 
             slotButtons.forEach((button) => {
                 const slotData = parseSlotDataset(button.dataset);
-                const available = isSlotAvailableOnDate(slotData, selectedDate);
+                const statusLabel = button.querySelector('[data-slot-status]');
+                const priceLabel = button.querySelector('[data-slot-price]');
+                const availableByDay = isWeekend ? slotData.weekendEnabled : slotData.weekdayEnabled;
+                const isBooked = bookedIds.has(String(slotData.id));
+                const available = availableByDay && !isBooked;
+                const price = slotData.isDiscount && slotData.discountPrice
+                    ? slotData.discountPrice
+                    : resolveEffectivePrice(slotData, isWeekend);
 
-                if (selectedDate) {
-                    button.disabled = !available;
-                    button.classList.toggle('slot-button--unavailable', !available);
-                    button.setAttribute('aria-disabled', available ? 'false' : 'true');
+                if (statusLabel) {
+                    statusLabel.textContent = isBooked
+                        ? 'Занято'
+                        : (availableByDay ? 'Свободно' : 'Не работает');
+                }
+
+                if (priceLabel) {
+                    priceLabel.textContent = availableByDay ? formatCurrency(price) : '—';
+                }
+
+                button.disabled = !available;
+                button.classList.toggle('slot-button--unavailable', !available);
+                button.classList.toggle('slot-button--booked', isBooked);
+
+                if (!available) {
+                    button.setAttribute('aria-disabled', 'true');
                 } else {
-                    button.disabled = false;
-                    button.classList.remove('slot-button--unavailable');
                     button.removeAttribute('aria-disabled');
                 }
             });
 
             if (activeSlot) {
-                priceHint.textContent = computePriceText(activeSlot);
+                const refreshedButton = document.querySelector(`[data-slot-id="${activeSlot.id}"]`);
+                if (!refreshedButton || refreshedButton.disabled) {
+                    activeSlot = null;
+                    slotSummaryInput.value = '';
+                    slotIdInput.value = '';
+                }
             }
+
+            priceHint.textContent = computePriceText(activeSlot);
+        };
+
+        const updateHeading = (dateStr) => {
+            if (!scheduleHeading) {
+                return;
+            }
+
+            scheduleHeading.textContent = `Расписание на ${formatHeading(dateStr)}`;
+        };
+
+        const loadSchedule = async (dateStr) => {
+            if (!scheduleEndpoint || !dateStr) {
+                return null;
+            }
+
+            if (scheduleError) {
+                scheduleError.classList.remove('is-visible');
+            }
+
+            if (scheduleCache.has(dateStr)) {
+                const cached = scheduleCache.get(dateStr);
+                selectedDate = cached.date;
+                bookingDateInput.value = cached.date;
+                if (datePicker) {
+                    datePicker.value = cached.date;
+                }
+                updateHeading(cached.date);
+                applySchedule(cached);
+                return cached;
+            }
+
+            try {
+                const response = await fetch(`${scheduleEndpoint}?date=${encodeURIComponent(dateStr)}`, {
+                    headers: { 'Accept': 'application/json' },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Schedule request failed');
+                }
+
+                const data = await response.json();
+                scheduleCache.set(data.date, data);
+                selectedDate = data.date;
+                bookingDateInput.value = data.date;
+                if (datePicker) {
+                    datePicker.value = data.date;
+                }
+                dateButtons.forEach((button) => {
+                    button.classList.toggle('is-selected', button.dataset.date === data.date);
+                });
+                updateHeading(data.date);
+                applySchedule(data);
+
+                return data;
+            } catch (error) {
+                console.error(error);
+                if (scheduleError) {
+                    scheduleError.classList.add('is-visible');
+                }
+                return null;
+            }
+        };
+
+        const setSelectedDate = (dateStr, { skipRequest = false, preserveSelection = false } = {}) => {
+            if (!dateStr) {
+                return Promise.resolve(null);
+            }
+
+            selectedDate = dateStr;
+            bookingDateInput.value = dateStr;
+            if (datePicker) {
+                datePicker.value = dateStr;
+            }
+            dateButtons.forEach((button) => {
+                button.classList.toggle('is-selected', button.dataset.date === dateStr);
+            });
+            updateHeading(dateStr);
+
+            if (!preserveSelection) {
+                activeSlot = null;
+                slotSummaryInput.value = '';
+                slotIdInput.value = '';
+                priceHint.textContent = 'Выберите время, чтобы увидеть стоимость.';
+            }
+
+            if (skipRequest) {
+                return Promise.resolve(currentSchedule);
+            }
+
+            return loadSchedule(dateStr);
+        };
+
+        const openModal = (slotData) => {
+            if (!currentSchedule) {
+                priceHint.textContent = 'Выберите дату, чтобы увидеть стоимость.';
+                return;
+            }
+
+            const bookings = Array.isArray(currentSchedule.bookings) ? currentSchedule.bookings : [];
+            const isBooked = bookings.some((booking) => Number(booking.quest_slot_id) === slotData.id);
+            const isWeekend = Boolean(currentSchedule.is_weekend);
+            const availableByDay = isWeekend ? slotData.weekendEnabled : slotData.weekdayEnabled;
+
+            if (!availableByDay || isBooked) {
+                priceHint.textContent = computePriceText(slotData);
+                return;
+            }
+
+            activeSlot = slotData;
+            slotIdInput.value = slotData.id;
+            const summaryDate = formatSummaryDate(currentSchedule.date || selectedDate);
+            slotSummaryInput.value = `${slotData.time} · ${summaryDate}`;
+            priceHint.textContent = computePriceText(slotData);
+            bookingDateInput.value = currentSchedule.date || selectedDate;
+            modal.classList.add('is-visible');
+        };
+
+        const closeModal = () => {
+            modal.classList.remove('is-visible');
         };
 
         slotButtons.forEach((button) => {
@@ -753,18 +986,43 @@
             }
         });
 
+        if (manualPickerTrigger && datePicker) {
+            manualPickerTrigger.addEventListener('click', () => {
+                if (typeof datePicker.showPicker === 'function') {
+                    datePicker.showPicker();
+                } else {
+                    datePicker.focus();
+                    datePicker.click();
+                }
+            });
+        }
+
+        if (datePicker) {
+            datePicker.addEventListener('change', () => {
+                setSelectedDate(datePicker.value);
+            });
+        }
+
         bookingDateInput.addEventListener('change', () => {
-            refreshSlotStates();
+            setSelectedDate(bookingDateInput.value);
         });
 
-        refreshSlotStates();
+        dateButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                setSelectedDate(button.dataset.date);
+            });
+        });
 
-        if (modal.dataset.shouldOpen === 'true' && slotIdInput.value) {
-            const initialButton = document.querySelector(`[data-slot-id="${slotIdInput.value}"]`);
-            if (initialButton) {
-                initialButton.click();
+        const fallbackDate = selectedDate || bookingDateInput.value || new Date().toISOString().slice(0, 10);
+
+        setSelectedDate(fallbackDate, { preserveSelection: true }).then(() => {
+            if (shouldRestoreModal && initialSlotId) {
+                const initialButton = document.querySelector(`[data-slot-id="${initialSlotId}"]`);
+                if (initialButton && !initialButton.disabled) {
+                    initialButton.click();
+                }
             }
-        }
+        });
     });
 </script>
 </body>
