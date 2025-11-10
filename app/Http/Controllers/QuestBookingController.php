@@ -119,6 +119,14 @@ class QuestBookingController extends Controller
                 ->withInput();
         }
 
+        $returnTo = $request->input('return_to');
+
+        if ($returnTo === 'admin_schedule_overview') {
+            return redirect()
+                ->route('admin.schedule.overview', ['date' => $date->format('Y-m-d')])
+                ->with('status', 'Слот успешно забронирован и добавлен в расписание.');
+        }
+
         return redirect()
             ->route('quests.show', ['id' => $quest->id])
             ->with('status', 'Слот успешно забронирован, личный кабинет создан!');

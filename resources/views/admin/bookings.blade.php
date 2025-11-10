@@ -430,7 +430,7 @@
 <div class="admin-page">
     <div class="page-header">
         <div class="page-header__title">
-            <a href="{{ route('admin.quests') }}" class="link-back">&larr; К управлению квестами</a>
+            <a href="{{ route('admin.dashboard') }}" class="link-back">&larr; В панель</a>
             <h1>Бронирования</h1>
             <span class="page-header__range">{{ $startDate->isoFormat('DD MMMM') }} &mdash; {{ $endDate->isoFormat('DD MMMM') }}</span>
         </div>
