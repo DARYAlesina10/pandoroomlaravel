@@ -495,7 +495,7 @@
                                 data-status="{{ $booking ? 'booked' : ($isEnabled ? 'available' : 'disabled') }}"
                                 data-customer="{{ $booking->customer_name ?? '' }}"
                                 data-phone="{{ $booking->customer_phone ?? '' }}"
-                                data-created="{{ optional($booking->created_at)->format('d.m.Y H:i') }}"
+                                data-created="{{ optional(optional($booking)->created_at)->format('d.m.Y H:i') }}"
                                 data-quest="{{ optional($selectedQuest)->name }}"
                             >
                                 <div class="calendar-cell__time">{{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->time)->format('H:i') }}</div>

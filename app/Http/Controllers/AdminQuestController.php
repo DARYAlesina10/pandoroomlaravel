@@ -15,7 +15,13 @@ class AdminQuestController extends Controller
 
     public function index()
     {
-        return view('admin.quests');
+        $quests = Quest::withCount('slots')
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.quests', [
+            'quests' => $quests,
+        ]);
     }
     public function store(Request $request)
     {
