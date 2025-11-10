@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\VenueHall;
 use App\VenueTable;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class AdminTableController extends Controller
 {
@@ -58,7 +57,19 @@ class AdminTableController extends Controller
 
         $services = collect(preg_split('/[,\n]+/', (string) ($validated['services'] ?? ''), -1, PREG_SPLIT_NO_EMPTY))
             ->map(function ($service) {
-                return Str::of($service)->trim()->limit(100)->toString();
+                $clean = trim($service);
+
+                if ($clean === '') {
+                    return null;
+                }
+
+                if (function_exists('mb_substr')) {
+                    $clean = mb_substr($clean, 0, 100);
+                } else {
+                    $clean = substr($clean, 0, 100);
+                }
+
+                return $clean;
             })
             ->filter()
             ->values()
