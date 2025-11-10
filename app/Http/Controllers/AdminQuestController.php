@@ -45,7 +45,7 @@ class AdminQuestController extends Controller
         ]);
 
         $quest = new Quest();
-        $quest->fill($request->all());
+        $quest->fill($this->prepareQuestPayload($request));
 
         if ($request->hasFile('preview_image')) {
             $path = $request->file('preview_image')->store('images/quests');
@@ -91,7 +91,7 @@ class AdminQuestController extends Controller
         ]);
 
         $quest = Quest::findOrFail($id);
-        $quest->fill($request->all());
+        $quest->fill($this->prepareQuestPayload($request));
 
         if ($request->hasFile('preview_image')) {
             if ($quest->preview_image) {
@@ -112,5 +112,23 @@ class AdminQuestController extends Controller
         $quest->save();
 
         return redirect()->route('admin.edit', $quest->id)->with('success', 'Квест успешно обновлён!');
+    }
+
+    protected function prepareQuestPayload(Request $request): array
+    {
+        $data = $request->except(['preview_image', 'background_image']);
+
+        $additionalPlayers = $request->input('additional_players');
+        $pricePerAdditional = $request->input('price_per_additional_player');
+
+        $data['additional_players'] = $additionalPlayers === null || $additionalPlayers === ''
+            ? 0
+            : (int) $additionalPlayers;
+
+        $data['price_per_additional_player'] = $pricePerAdditional === null || $pricePerAdditional === ''
+            ? 0
+            : (int) $pricePerAdditional;
+
+        return $data;
     }
 }

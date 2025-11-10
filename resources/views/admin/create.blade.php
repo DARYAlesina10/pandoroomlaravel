@@ -19,7 +19,7 @@
         </div>
         <div class="form-group">
             <label for="branchId">Филиал</label>
-            <input type="number" name="branchId" id="branchId" class="form-control">
+            <input type="number" name="branchId" id="branchId" class="form-control" value="{{ old('branchId') }}">
         </div>
         <div class="form-group">
             <label for="players_count">Количество игроков</label>
@@ -27,7 +27,7 @@
         </div>
         <div class="form-group">
             <label for="game_time">Время игры</label>
-            <input type="text" name="game_time" id="game_time" class="form-control">
+            <input type="text" name="game_time" id="game_time" class="form-control" value="{{ old('game_time') }}">
         </div>
         <div class="form-group">
             <label for="preview_image">Превью изображение</label>
@@ -55,11 +55,11 @@
         </div>
         <div class="form-group">
             <label for="additional_players">Дополнительные игроки</label>
-            <input type="number" name="additional_players" id="additional_players" class="form-control">
+            <input type="number" name="additional_players" id="additional_players" class="form-control" value="{{ old('additional_players', 0) }}" min="0">
         </div>
         <div class="form-group">
             <label for="price_per_additional_player">Цена за дополнительного игрока</label>
-            <input type="number" name="price_per_additional_player" id="price_per_additional_player" class="form-control">
+            <input type="number" name="price_per_additional_player" id="price_per_additional_player" class="form-control" value="{{ old('price_per_additional_player', 0) }}" min="0">
         </div>
         <div class="form-group">
             <label for="weekday_base_price">Базовая цена (будни)</label>

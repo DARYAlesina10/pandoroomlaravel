@@ -475,7 +475,10 @@
                 </div>
                 <div class="calendar-grid__rows">
                     @foreach($slots as $slot)
-                        <div class="time-cell">{{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->time)->format('H:i') }}</div>
+                        @php
+                            $slotLabel = $slot->time ? \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->time)->format('H:i') : '—';
+                        @endphp
+                        <div class="time-cell">{{ $slotLabel }}</div>
                         @foreach($dateRange as $date)
                             @php
                                 $key = $date->format('Y-m-d') . '|' . $slot->id;
@@ -490,15 +493,15 @@
                                 data-calendar-cell
                                 data-slot="{{ $slot->id }}"
                                 data-date="{{ $date->toDateString() }}"
-                                data-time="{{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->time)->format('H:i') }}"
+                                data-time="{{ $slotLabel }}"
                                 data-price="{{ $price }}"
                                 data-status="{{ $booking ? 'booked' : ($isEnabled ? 'available' : 'disabled') }}"
                                 data-customer="{{ $booking->customer_name ?? '' }}"
                                 data-phone="{{ $booking->customer_phone ?? '' }}"
-                                data-created="{{ optional(optional($booking)->created_at)->format('d.m.Y H:i') }}"
+                                data-created="{{ optional($booking->created_at)->format('d.m.Y H:i') }}"
                                 data-quest="{{ optional($selectedQuest)->name }}"
                             >
-                                <div class="calendar-cell__time">{{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->time)->format('H:i') }}</div>
+                                <div class="calendar-cell__time">{{ $slotLabel }}</div>
                                 <div class="calendar-cell__status">
                                     @if($booking)
                                         Забронировано
@@ -537,8 +540,17 @@
                 <tbody>
                 @foreach($bookings as $booking)
                     <tr>
-                        <td>{{ $booking->booking_date->format('d.m.Y') }}</td>
-                        <td>{{ optional($booking->slot)->time ? \Illuminate\Support\Carbon::createFromFormat('H:i:s', $booking->slot->time)->format('H:i') : '—' }}</td>
+                        <td>{{ optional($booking->booking_date)->format('d.m.Y') ?? '—' }}</td>
+                        @php
+                            $tableSlotTime = optional($booking->slot)->time;
+                        @endphp
+                        <td>
+                            @if($tableSlotTime)
+                                {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $tableSlotTime)->format('H:i') }}
+                            @else
+                                —
+                            @endif
+                        </td>
                         <td>{{ optional($booking->quest)->name ?? '—' }}</td>
                         <td>{{ $booking->customer_name }}</td>
                         <td>{{ $booking->customer_phone }}</td>
