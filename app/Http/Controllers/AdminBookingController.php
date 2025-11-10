@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Quest;
 use App\QuestBooking;
+use App\VenueTable;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 
@@ -72,6 +73,8 @@ class AdminBookingController extends Controller
             'quest_id' => $selectedQuest ? $selectedQuest->id : null,
         ]);
 
+        $tables = VenueTable::with('hall')->orderBy('name')->get();
+
         return view('admin.bookings', [
             'bookings' => $bookings,
             'sort' => $sort,
@@ -83,6 +86,7 @@ class AdminBookingController extends Controller
             'calendarBookings' => $calendarBookings,
             'startDate' => $startDate,
             'endDate' => $endDate,
+            'tables' => $tables,
         ]);
     }
 }

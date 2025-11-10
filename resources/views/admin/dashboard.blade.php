@@ -211,6 +211,25 @@
             font-size: 22px;
         }
 
+        .upcoming-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .upcoming-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .upcoming-list h3 {
+            margin: 0;
+            font-size: 16px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
         .booking-row {
             display: flex;
             justify-content: space-between;
@@ -296,6 +315,21 @@
                 <div class="stat-value">{{ $userCount }}</div>
                 <div class="stat-footer">Все зарегистрированные гости и администраторы</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-title">Брони столов</div>
+                <div class="stat-value">{{ $tableBookingCount }}</div>
+                <div class="stat-footer">Предстоящие мероприятия с размещением гостей</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Доступные столы</div>
+                <div class="stat-value">{{ $tableCount }}</div>
+                <div class="stat-footer">В каталоге административной панели</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Залы</div>
+                <div class="stat-value">{{ $hallCount }}</div>
+                <div class="stat-footer">Оборудованные площадки для проведения</div>
+            </div>
         </div>
     </header>
 
@@ -330,6 +364,21 @@
             <p class="action-description">Создайте доступ для нового менеджера без выхода из панели управления.</p>
             <a href="{{ url('/admin/register') }}">Добавить администратора</a>
         </div>
+        <div class="action-card">
+            <h2 class="action-title">Залы и столы</h2>
+            <p class="action-description">Создавайте залы, настраивайте столы и отмечайте дополнительные услуги для праздников.</p>
+            <a href="{{ route('admin.halls') }}">Перейти к залам</a>
+        </div>
+        <div class="action-card">
+            <h2 class="action-title">Расписание столов</h2>
+            <p class="action-description">Бронируйте столы с шагом в 30 минут и сразу связывайте их с подходящими квестами.</p>
+            <a href="{{ route('admin.tables.schedule') }}">Планировать столы</a>
+        </div>
+        <div class="action-card">
+            <h2 class="action-title">Мануалы и регламенты</h2>
+            <p class="action-description">Под рукой инструкции по всем разделам панели: расписаниям, столам, клиентам.</p>
+            <a href="{{ route('admin.manuals') }}">Открыть мануалы</a>
+        </div>
     </section>
 
     <section class="upcoming-bookings">
@@ -338,19 +387,52 @@
             <a href="{{ route('admin.bookings') }}" class="secondary-button">Полный список</a>
         </div>
 
-        @if($upcomingBookings->isEmpty())
-            <div class="empty-state">Пока нет будущих броней. Добавьте новую с помощью расписания.</div>
-        @else
-            @foreach($upcomingBookings as $booking)
-                <div class="booking-row">
-                    <div class="booking-meta">
-                        <strong>{{ $booking->customer_name }}</strong>
-                        <span>{{ optional($booking->quest)->name }} · {{ optional($booking->slot)->time }}</span>
+    <div class="upcoming-grid">
+        <div class="upcoming-list">
+            <h3>Квесты</h3>
+            @if($upcomingBookings->isEmpty())
+                <div class="empty-state">Пока нет будущих квестов — создайте бронь в расписании.</div>
+            @else
+                @foreach($upcomingBookings as $booking)
+                    @php
+                        $slotTime = optional($booking->slot)->time
+                            ? \Illuminate\Support\Carbon::createFromFormat('H:i:s', $booking->slot->time)->format('H:i')
+                            : '—';
+                    @endphp
+                    <div class="booking-row">
+                        <div class="booking-meta">
+                            <strong>{{ $booking->customer_name }}</strong>
+                            <span>{{ optional($booking->quest)->name ?? 'Без названия' }} · {{ $slotTime }}</span>
+                        </div>
+                        <div class="booking-date">{{ $booking->booking_date->translatedFormat('d F, H:i') }}</div>
                     </div>
-                    <div class="booking-date">{{ $booking->booking_date->translatedFormat('d F, H:i') }}</div>
-                </div>
-            @endforeach
-        @endif
+                @endforeach
+            @endif
+        </div>
+        <div class="upcoming-list">
+            <h3>Столы</h3>
+            @if($upcomingTableBookings->isEmpty())
+                <div class="empty-state">Расписание столов свободно — забронируйте места для гостей.</div>
+            @else
+                @foreach($upcomingTableBookings as $booking)
+                    @php
+                        $startTime = \Illuminate\Support\Carbon::createFromFormat('H:i:s', $booking->start_time)->format('H:i');
+                        $endTime = \Illuminate\Support\Carbon::createFromFormat('H:i:s', $booking->end_time)->format('H:i');
+                    @endphp
+                    <div class="booking-row">
+                        <div class="booking-meta">
+                            <strong>{{ $booking->customer_name }}</strong>
+                            <span>{{ optional($booking->table)->name ?? 'Стол' }} · {{ $startTime }} – {{ $endTime }}</span>
+                            @if ($booking->questBooking)
+                                <span>Квест: {{ optional($booking->questBooking->quest)->name }}</span>
+                            @endif
+                        </div>
+                        <div class="booking-date">{{ $booking->booking_date->translatedFormat('d F, H:i') }}</div>
+                    </div>
+                @endforeach
+            @endif
+        </div>
+    </div>
     </section>
 </div>
 </body>

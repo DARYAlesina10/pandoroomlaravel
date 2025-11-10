@@ -27,4 +27,9 @@ class QuestBooking extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function tableBooking()
+    {
+        return $this->belongsTo(TableBooking::class, 'table_booking_id');
+    }
 }

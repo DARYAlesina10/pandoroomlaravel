@@ -331,6 +331,113 @@
             color: #fff;
         }
 
+        .booking-modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .booking-modal.is-visible {
+            display: flex;
+        }
+
+        .booking-modal__backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(24, 28, 34, 0.45);
+            backdrop-filter: blur(4px);
+        }
+
+        .booking-modal__card {
+            position: relative;
+            background: #fff;
+            width: min(720px, calc(100% - 32px));
+            border-radius: 28px;
+            padding: 32px;
+            box-shadow: 0 40px 80px -45px rgba(24, 28, 34, 0.55);
+            display: grid;
+            gap: 20px;
+        }
+
+        .booking-modal__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .booking-modal__title {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .booking-modal__close {
+            border: none;
+            background: transparent;
+            font-size: 26px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .booking-modal__grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .booking-modal__grid label {
+            display: block;
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+
+        .booking-modal__grid input,
+        .booking-modal__grid select,
+        .booking-modal__grid textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid #d1d5db;
+            font-size: 15px;
+        }
+
+        .booking-modal__grid textarea {
+            resize: vertical;
+        }
+
+        .booking-modal__switch {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-top: 6px;
+        }
+
+        .booking-modal__footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .booking-modal__footer button {
+            padding: 12px 20px;
+            border-radius: 14px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .booking-modal__footer .secondary {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .booking-modal__footer .primary {
+            background: #d9c062;
+            color: #fff;
+        }
+
         .popover {
             position: fixed;
             inset: 0;
@@ -462,7 +569,7 @@
                 <div class="calendar-toolbar__caption">Расписание обновляется автоматически при бронировании</div>
             </div>
 
-            <div class="calendar-grid" data-calendar-grid>
+            <div class="calendar-grid" data-calendar-grid data-quest-id="{{ optional($selectedQuest)->id }}">
                 <div class="calendar-grid__head">
                     <div>Время</div>
                     @foreach($dateRange as $date)
@@ -500,6 +607,7 @@
                                 data-phone="{{ $booking->customer_phone ?? '' }}"
                                 data-created="{{ optional($booking->created_at)->format('d.m.Y H:i') }}"
                                 data-quest="{{ optional($selectedQuest)->name }}"
+                                data-quest-id="{{ optional($selectedQuest)->id }}"
                             >
                                 <div class="calendar-cell__time">{{ $slotLabel }}</div>
                                 <div class="calendar-cell__status">
@@ -568,6 +676,81 @@
     </section>
 </div>
 
+<div id="booking-modal" class="booking-modal" aria-hidden="true">
+    <div class="booking-modal__backdrop" data-close-booking></div>
+    <div class="booking-modal__card">
+        <div class="booking-modal__header">
+            <h3 class="booking-modal__title">Новое бронирование</h3>
+            <button type="button" class="booking-modal__close" data-close-booking>&times;</button>
+        </div>
+        <form method="POST" id="quest-booking-form" data-action-template="{{ url('/admin/quests') }}/__QUEST__/bookings">
+                @csrf
+            <input type="hidden" name="booking_date" id="modal-booking-date">
+            <input type="hidden" name="quest_slot_id" id="modal-slot-id">
+            <div class="booking-modal__grid">
+                <div>
+                    <label>Квест</label>
+                    <input type="text" id="modal-quest-name" readonly>
+                </div>
+                <div>
+                    <label>Дата</label>
+                    <input type="text" id="modal-quest-date" readonly>
+                </div>
+                <div>
+                    <label>Начало</label>
+                    <input type="text" id="modal-quest-time" readonly>
+                </div>
+                <div>
+                    <label>Стоимость</label>
+                    <input type="text" id="modal-quest-price" readonly>
+                </div>
+                <div>
+                    <label>Имя клиента</label>
+                    <input type="text" name="customer_name" required>
+                </div>
+                <div>
+                    <label>Телефон</label>
+                    <input type="text" name="customer_phone" required>
+                </div>
+            </div>
+            <div class="booking-modal__switch">
+                <input type="checkbox" id="table-toggle" {{ $tables->isEmpty() ? 'disabled' : '' }}>
+                <label for="table-toggle">{{ $tables->isEmpty() ? 'Нет доступных столов для бронирования' : 'Забронировать стол вместе с квестом' }}</label>
+            </div>
+            <div class="booking-modal__grid" id="table-fields" style="display:none;">
+                <div>
+                    <label>Стол</label>
+                    <select name="table_booking[table_id]" id="modal-table-select">
+                        <option value="">Выберите стол</option>
+                        @foreach ($tables as $table)
+                            <option value="{{ $table->id }}">{{ optional($table->hall)->name ? optional($table->hall)->name . ' — ' : '' }}{{ $table->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label>Начало для стола</label>
+                    <input type="text" name="table_booking[start_time]" id="modal-table-start" readonly>
+                </div>
+                <div>
+                    <label>Окончание</label>
+                    <select name="table_booking[end_time]" id="modal-table-end"></select>
+                </div>
+                <div>
+                    <label>Ответственный сотрудник</label>
+                    <input type="text" name="table_booking[staff_name]" id="modal-table-staff">
+                </div>
+                <div style="grid-column: 1 / -1;">
+                    <label>Комментарий</label>
+                    <textarea name="table_booking[comment]" id="modal-table-comment" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="booking-modal__footer">
+                <button type="button" class="secondary" data-close-booking>Отмена</button>
+                <button type="submit" class="primary">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
 <div id="booking-popover" class="popover" aria-hidden="true">
     <div class="popover__backdrop" data-close-popover></div>
     <div class="popover__card">
@@ -585,6 +768,7 @@
     </div>
 </div>
 
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const popover = document.getElementById('booking-popover');
@@ -595,6 +779,26 @@
         const popoverPrice = popover.querySelector('[data-popover-price]');
         const popoverExtra = popover.querySelector('[data-popover-extra]');
         const closeTriggers = popover.querySelectorAll('[data-close-popover]');
+
+        const bookingModal = document.getElementById('booking-modal');
+        const bookingForm = document.getElementById('quest-booking-form');
+        const bookingActionTemplate = bookingForm ? bookingForm.dataset.actionTemplate : '';
+        const bookingCloseButtons = bookingModal.querySelectorAll('[data-close-booking]');
+        const modalQuestName = document.getElementById('modal-quest-name');
+        const modalQuestDate = document.getElementById('modal-quest-date');
+        const modalQuestTime = document.getElementById('modal-quest-time');
+        const modalQuestPrice = document.getElementById('modal-quest-price');
+        const modalBookingDate = document.getElementById('modal-booking-date');
+        const modalSlotId = document.getElementById('modal-slot-id');
+        const tableToggle = document.getElementById('table-toggle');
+        const tableFields = document.getElementById('table-fields');
+        const tableSelect = document.getElementById('modal-table-select');
+        const tableStart = document.getElementById('modal-table-start');
+        const tableEnd = document.getElementById('modal-table-end');
+        const tableStaff = document.getElementById('modal-table-staff');
+        const tableComment = document.getElementById('modal-table-comment');
+        const calendarGrid = document.querySelector('[data-calendar-grid]');
+        const currentQuestId = calendarGrid ? calendarGrid.dataset.questId : '';
 
         const formatCurrency = (value) => {
             const number = Number(value);
@@ -609,8 +813,51 @@
         };
 
         const formatDate = (dateString) => {
+            if (!dateString) {
+                return '';
+            }
             const date = new Date(`${dateString}T00:00:00`);
             return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'long' });
+        };
+
+        const toggleTableFields = (enabled) => {
+            tableFields.style.display = enabled ? 'grid' : 'none';
+            tableSelect.required = enabled;
+            tableEnd.required = enabled;
+            tableStaff.required = enabled;
+            if (!enabled) {
+                tableSelect.value = '';
+                tableEnd.innerHTML = '';
+                tableStaff.value = '';
+                tableComment.value = '';
+            }
+        };
+
+        const populateEndOptions = (startValue) => {
+            tableEnd.innerHTML = '';
+            if (!startValue) {
+                return;
+            }
+            const [hour, minute] = startValue.split(':').map(Number);
+            if (Number.isNaN(hour) || Number.isNaN(minute)) {
+                return;
+            }
+            const current = new Date();
+            current.setHours(hour, minute, 0, 0);
+            const closing = new Date();
+            closing.setHours(23, 30, 0, 0);
+
+            while (current < closing) {
+                current.setMinutes(current.getMinutes() + 30);
+                if (current > closing) {
+                    break;
+                }
+                const value = current.toTimeString().slice(0, 5);
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                tableEnd.appendChild(option);
+            }
         };
 
         const openPopover = (cell) => {
@@ -623,7 +870,7 @@
             const phone = cell.dataset.phone || '';
             const created = cell.dataset.created || '';
 
-            popoverTitle.textContent = status === 'booked' ? 'Бронирование' : (status === 'available' ? 'Слот свободен' : 'Слот выключен');
+            popoverTitle.textContent = status === 'booked' ? 'Бронирование' : 'Информация';
             popoverQuest.textContent = quest;
             popoverDate.textContent = formatDate(date);
             popoverTime.textContent = time;
@@ -631,10 +878,10 @@
 
             if (status === 'booked') {
                 popoverExtra.innerHTML = `<strong>Гость:</strong> ${customer || '—'}<br><strong>Телефон:</strong> ${phone || '—'}<br><strong>Создано:</strong> ${created || '—'}`;
-            } else if (status === 'available') {
-                popoverExtra.textContent = 'Слот свободен и готов к бронированию.';
-            } else {
+            } else if (status === 'disabled') {
                 popoverExtra.textContent = 'Слот отключён для выбранного дня.';
+            } else {
+                popoverExtra.textContent = 'Слот свободен.';
             }
 
             popover.classList.add('is-visible');
@@ -646,24 +893,79 @@
             popover.setAttribute('aria-hidden', 'true');
         };
 
-        document.querySelectorAll('[data-calendar-cell]').forEach((cell) => {
-            if (cell.classList.contains('disabled')) {
+        const openBookingModal = (cell) => {
+            const questId = cell.dataset.questId || currentQuestId;
+            if (!questId || !bookingForm) {
+                openPopover(cell);
                 return;
             }
 
-            cell.addEventListener('click', () => openPopover(cell));
+            if (bookingActionTemplate) {
+                bookingForm.action = bookingActionTemplate.replace('__QUEST__', questId);
+            }
+
+            const date = cell.dataset.date || '';
+            const time = cell.dataset.time || '';
+            const price = cell.dataset.price || '';
+
+            modalQuestName.value = cell.dataset.quest || '';
+            modalQuestDate.value = formatDate(date);
+            modalQuestTime.value = time;
+            modalQuestPrice.value = price ? formatCurrency(price) : '';
+            modalBookingDate.value = date;
+            modalSlotId.value = cell.dataset.slot || '';
+            tableStart.value = time;
+
+            populateEndOptions(time);
+            tableToggle.checked = false;
+            toggleTableFields(false);
+
+            bookingModal.classList.add('is-visible');
+            bookingModal.setAttribute('aria-hidden', 'false');
+        };
+
+        const closeBookingModal = () => {
+            bookingModal.classList.remove('is-visible');
+            bookingModal.setAttribute('aria-hidden', 'true');
+        };
+
+        document.querySelectorAll('[data-calendar-cell]').forEach((cell) => {
+            const status = cell.dataset.status;
+            if (status === 'disabled') {
+                return;
+            }
+
+            if (status === 'available') {
+                cell.addEventListener('click', () => openBookingModal(cell));
+            } else {
+                cell.addEventListener('click', () => openPopover(cell));
+            }
         });
 
         closeTriggers.forEach((trigger) => {
             trigger.addEventListener('click', closePopover);
         });
 
+        bookingCloseButtons.forEach((button) => {
+            button.addEventListener('click', closeBookingModal);
+        });
+
+        tableToggle.addEventListener('change', () => {
+            const enabled = tableToggle.checked;
+            toggleTableFields(enabled);
+            if (enabled) {
+                populateEndOptions(tableStart.value);
+            }
+        });
+
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
                 closePopover();
+                closeBookingModal();
             }
         });
     });
 </script>
+
 </body>
 </html>
