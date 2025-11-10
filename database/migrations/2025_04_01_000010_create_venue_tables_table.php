@@ -14,7 +14,9 @@ class CreateVenueTablesTable extends Migration
             $table->string('name');
             $table->unsignedInteger('min_capacity')->default(1);
             $table->unsignedInteger('max_capacity');
-            $table->json('services')->nullable();
+            // MariaDB setups predating native JSON support will error on json() columns,
+            // so we persist services as text while still casting it to an array in the model.
+            $table->text('services')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
