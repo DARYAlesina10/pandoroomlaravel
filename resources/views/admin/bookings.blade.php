@@ -558,7 +558,7 @@
         @if(!$selectedQuest)
             <div class="calendar-empty">Пока нет квестов, для которых можно построить расписание.</div>
         @elseif($slots->isEmpty())
-            <div class="calendar-empty">Для квеста «{{ $selectedQuest->name }}» не настроено ни одного слота.</div>
+            <div class="calendar-empty">Для квеста «{{ optional($selectedQuest)->name ?? '—' }}» не настроено ни одного слота.</div>
         @else
             <div class="calendar-toolbar">
                 <div class="calendar-toolbar__legend">
@@ -797,6 +797,7 @@
         const tableEnd = document.getElementById('modal-table-end');
         const tableStaff = document.getElementById('modal-table-staff');
         const tableComment = document.getElementById('modal-table-comment');
+        const hasTableControls = tableToggle && tableFields && tableSelect && tableStart && tableEnd && tableStaff && tableComment;
         const calendarGrid = document.querySelector('[data-calendar-grid]');
         const currentQuestId = calendarGrid ? calendarGrid.dataset.questId : '';
 
@@ -821,6 +822,9 @@
         };
 
         const toggleTableFields = (enabled) => {
+            if (!hasTableControls) {
+                return;
+            }
             tableFields.style.display = enabled ? 'grid' : 'none';
             tableSelect.required = enabled;
             tableEnd.required = enabled;
@@ -834,6 +838,9 @@
         };
 
         const populateEndOptions = (startValue) => {
+            if (!hasTableControls) {
+                return;
+            }
             tableEnd.innerHTML = '';
             if (!startValue) {
                 return;
@@ -914,11 +921,13 @@
             modalQuestPrice.value = price ? formatCurrency(price) : '';
             modalBookingDate.value = date;
             modalSlotId.value = cell.dataset.slot || '';
-            tableStart.value = time;
 
-            populateEndOptions(time);
-            tableToggle.checked = false;
-            toggleTableFields(false);
+            if (hasTableControls) {
+                tableStart.value = time;
+                populateEndOptions(time);
+                tableToggle.checked = false;
+                toggleTableFields(false);
+            }
 
             bookingModal.classList.add('is-visible');
             bookingModal.setAttribute('aria-hidden', 'false');
@@ -950,13 +959,15 @@
             button.addEventListener('click', closeBookingModal);
         });
 
-        tableToggle.addEventListener('change', () => {
-            const enabled = tableToggle.checked;
-            toggleTableFields(enabled);
-            if (enabled) {
-                populateEndOptions(tableStart.value);
-            }
-        });
+        if (hasTableControls) {
+            tableToggle.addEventListener('change', () => {
+                const enabled = tableToggle.checked;
+                toggleTableFields(enabled);
+                if (enabled) {
+                    populateEndOptions(tableStart.value);
+                }
+            });
+        }
 
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {

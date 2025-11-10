@@ -80,7 +80,7 @@
                                                 <div class="fw-semibold">Забронировано</div>
                                                 <div class="small text-muted">{{ $booking->customer_name }} • {{ $booking->customer_phone }}</div>
                                                 @if ($booking->questBooking)
-                                                    <div class="small">Квест: {{ optional($booking->questBooking->quest)->name }}</div>
+                                                    <div class="small">Квест: {{ optional(optional($booking->questBooking)->quest)->name }}</div>
                                                 @endif
                                             @else
                                                 <span class="text-success">Свободно</span>
@@ -101,7 +101,7 @@
                                                     data-phone="{{ $booking->customer_phone }}"
                                                     data-staff="{{ $booking->staff_name }}"
                                                     data-comment="{{ $booking->comment }}"
-                                                    data-quest="{{ optional($booking->questBooking->quest)->name }}"
+                                                    data-quest="{{ optional(optional($booking->questBooking)->quest)->name }}"
                                                     data-start="{{ $slot }}"
                                                     data-end="{{ $endTime }}"
                                                 >Подробнее</button>

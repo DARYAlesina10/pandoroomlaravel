@@ -424,7 +424,7 @@
                             <strong>{{ $booking->customer_name }}</strong>
                             <span>{{ optional($booking->table)->name ?? 'Стол' }} · {{ $startTime }} – {{ $endTime }}</span>
                             @if ($booking->questBooking)
-                                <span>Квест: {{ optional($booking->questBooking->quest)->name }}</span>
+                                <span>Квест: {{ optional(optional($booking->questBooking)->quest)->name }}</span>
                             @endif
                         </div>
                         <div class="booking-date">{{ $booking->booking_date->translatedFormat('d F, H:i') }}</div>
