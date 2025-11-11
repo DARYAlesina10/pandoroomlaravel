@@ -21,19 +21,31 @@ class AdminTableScheduleController extends Controller
             $query->orderBy('name');
         }])->orderBy('name')->get();
 
-        $selectedHallId = (int) $request->query('hall_id', $halls->first()->id ?? 0);
-        $selectedHall = $halls->firstWhere('id', $selectedHallId) ?? $halls->first();
+        $selectedHallId = (int) $request->query('hall_id', 0);
 
-        $tables = $selectedHall ? $selectedHall->tables : collect();
+        $displayHalls = $selectedHallId
+            ? $halls->filter(function (VenueHall $hall) use ($selectedHallId) {
+                return $hall->id === $selectedHallId;
+            })->values()
+            : $halls;
+
+        $tables = $displayHalls->flatMap(function (VenueHall $hall) {
+            return $hall->tables;
+        });
+
         $tableIds = $tables->pluck('id');
 
-        $bookings = TableBooking::with(['questBooking.quest'])
-            ->whereDate('booking_date', $selectedDate)
-            ->whereIn('venue_table_id', $tableIds)
-            ->get()
-            ->groupBy(function (TableBooking $booking) {
-                return $booking->venue_table_id . '|' . Carbon::createFromFormat('H:i:s', $booking->start_time)->format('H:i');
-            });
+        $bookings = collect();
+
+        if ($tableIds->isNotEmpty()) {
+            $bookings = TableBooking::with(['questBooking.quest', 'table.hall'])
+                ->whereDate('booking_date', $selectedDate)
+                ->whereIn('venue_table_id', $tableIds)
+                ->get()
+                ->groupBy(function (TableBooking $booking) {
+                    return $booking->venue_table_id . '|' . Carbon::createFromFormat('H:i:s', $booking->start_time)->format('H:i');
+                });
+        }
 
         $timeSlots = $this->generateTimeSlots();
         $quests = Quest::with(['slots' => function ($query) {
@@ -42,7 +54,8 @@ class AdminTableScheduleController extends Controller
 
         return view('admin.tables.schedule', [
             'halls' => $halls,
-            'selectedHall' => $selectedHall,
+            'displayHalls' => $displayHalls,
+            'selectedHallId' => $selectedHallId,
             'selectedDate' => $selectedDate,
             'timeSlots' => $timeSlots,
             'tables' => $tables,
