@@ -221,114 +221,38 @@
         <section class="quests-section">
           <h2 class="section-title">Квесты с актерами во Владивостоке</h2>
           <div class="quests-grid">
-            <article class="quest-card">
-              <div class="quest-content">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/9619b4f14ec5406ba10277256bbc5a9f/4cc272397f2ff0e003619d9b960bb4547d155e9d099c8c0516def716b10d0634?placeholderIfAbsent=true"
-                  class="quest-image"
-                  alt="Гарри Поттер и Философский камень"
-                />
-                <span class="quest-category">приключение</span>
-                <h3 class="quest-title">
-                  Гарри Поттер<br />и Философский камень
-                </h3>
-                <div class="quest-details">
+            @forelse($quests as $quest)
+              @php
+                $category = $quest->additional_services
+                    ? \Illuminate\Support\Str::limit(strip_tags($quest->additional_services), 60)
+                    : 'Квест с актёрами';
+                $players = $quest->players_count ? $quest->players_count . ' игроков' : 'Команда любого размера';
+                $duration = $quest->game_time ?: '60 минут';
+              @endphp
+              <article class="quest-card">
+                <a href="{{ route('quests.show', $quest->id) }}" class="quest-content">
                   <img
-                    src="https://cdn.builder.io/api/v1/image/assets/9619b4f14ec5406ba10277256bbc5a9f/ff24b40af72ed539cba7f863fb79d4c02415a310ca6b1e265a436ba4e2b81846?placeholderIfAbsent=true"
-                    class="quest-icon"
-                    alt="Quest details"
+                    src="{{ asset($quest->preview_image) }}"
+                    class="quest-image"
+                    alt="{{ $quest->name }}"
                   />
-                  <span class="quest-duration">60 минут</span>
-                  <span class="quest-players">2-6 игроков</span>
-                  <span class="quest-age">12+</span>
-                </div>
-              </div>
-            </article>
-
-            <article class="quest-card">
-              <div class="quest-content">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/9619b4f14ec5406ba10277256bbc5a9f/010bd2f43e09ef3b679f6403292d68138c8a8f3c9d9d444e39a9faefe2c3283f?placeholderIfAbsent=true"
-                  class="quest-image"
-                  alt="Чумной доктор"
-                />
-                <span class="quest-category">мистический</span>
-                <h3 class="quest-title">Чумной доктор</h3>
-                <div class="quest-details">
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets/9619b4f14ec5406ba10277256bbc5a9f/59394406d1129c504c893bec9f8cb4494ec03a295abf8bdb19a6dafd7c0a70d1?placeholderIfAbsent=true"
-                    class="quest-icon"
-                    alt="Quest details"
-                  />
-                  <span class="quest-duration">60 минут</span>
-                  <span class="quest-players">2-6 игроков</span>
-                  <span class="quest-age">12+</span>
-                </div>
-              </div>
-            </article>
-
-            <article class="quest-card">
-              <div class="quest-content">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/9619b4f14ec5406ba10277256bbc5a9f/e670ae1af5c3131dbd96c404a79de2472bcd296bacdd546c0988b0c54a0b496e?placeholderIfAbsent=true"
-                  class="quest-image"
-                  alt="Сокровища пиратов"
-                />
-                <span class="quest-category">приключение</span>
-                <h3 class="quest-title">Сокровища пиратов</h3>
-                <div class="quest-details">
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets/9619b4f14ec5406ba10277256bbc5a9f/b6f49e27748511b46351eb8b9d32ab53b113748d617e46a7d8802d455705f932?placeholderIfAbsent=true"
-                    class="quest-icon"
-                    alt="Quest details"
-                  />
-                  <span class="quest-duration">60 минут</span>
-                  <span class="quest-players">2-6 игроков</span>
-                  <span class="quest-age">12+</span>
-                </div>
-              </div>
-            </article>
-
-            <article class="quest-card">
-              <div class="quest-content">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/9619b4f14ec5406ba10277256bbc5a9f/84c7191b03d0ad587b57b64e7fcfc5803def1ec2d9b686cd3ee6d7fba8b07403?placeholderIfAbsent=true"
-                  class="quest-image"
-                  alt="Resident Evil"
-                />
-                <span class="quest-category">хоррор</span>
-                <h3 class="quest-title">Resident Evil</h3>
-                <div class="quest-details">
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets/9619b4f14ec5406ba10277256bbc5a9f/59394406d1129c504c893bec9f8cb4494ec03a295abf8bdb19a6dafd7c0a70d1?placeholderIfAbsent=true"
-                    class="quest-icon"
-                    alt="Quest details"
-                  />
-                  <span class="quest-duration">80 минут</span>
-                  <span class="quest-players">2-6 игроков</span>
-                  <span class="quest-age">12+</span>
-                </div>
-              </div>
-            </article>
-
-            <article class="quest-card">
-              <div class="quest-content">
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/9619b4f14ec5406ba10277256bbc5a9f/a29d66e1c9e680617c01087a6ec11eeaf9db5e1acf390a0d13284f171777fd3d?placeholderIfAbsent=true"
-                  class="quest-image"
-                  alt="Код Да Винчи"
-                />
-                <span class="quest-category">приключение</span>
-                <h3 class="quest-title">Код Да Винчи</h3>
-                <div class="quest-details">
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets/9619b4f14ec5406ba10277256bbc5a9f/59394406d1129c504c893bec9f8cb4494ec03a295abf8bdb19a6dafd7c0a70d1?placeholderIfAbsent=true"
-                    class="quest-icon"
-                    alt="Quest details"
-                  />
-                </div>
-              </div>
-            </article>
+                  <span class="quest-category">{{ $category }}</span>
+                  <h3 class="quest-title">{!! nl2br(e($quest->name)) !!}</h3>
+                  <div class="quest-details">
+                    <img
+                      src="https://cdn.builder.io/api/v1/image/assets/9619b4f14ec5406ba10277256bbc5a9f/59394406d1129c504c893bec9f8cb4494ec03a295abf8bdb19a6dafd7c0a70d1?placeholderIfAbsent=true"
+                      class="quest-icon"
+                      alt="Иконка параметров"
+                    />
+                    <span class="quest-duration">{{ $duration }}</span>
+                    <span class="quest-players">{{ $players }}</span>
+                    <span class="quest-age">{{ $quest->difficultyId ? 'Сложность: ' . $quest->difficultyId : 'Подходит для семей' }}</span>
+                  </div>
+                </a>
+              </article>
+            @empty
+              <p class="quest-empty">Скоро здесь появятся квесты с актёрами из нашей коллекции.</p>
+            @endforelse
           </div>
         </section>
 

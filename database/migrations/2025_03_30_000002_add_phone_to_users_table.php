@@ -4,22 +4,23 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddIsAdminToUsersTable extends Migration
+class AddPhoneToUsersTable extends Migration
 {
     public function up()
     {
-        if (! Schema::hasColumn('users', 'is_admin')) {
+        if (!Schema::hasColumn('users', 'phone')) {
             Schema::table('users', function (Blueprint $table) {
-                $table->boolean('is_admin')->default(false);
+                $table->string('phone')->unique()->nullable()->after('email');
             });
         }
     }
 
     public function down()
     {
-        if (Schema::hasColumn('users', 'is_admin')) {
+        if (Schema::hasColumn('users', 'phone')) {
             Schema::table('users', function (Blueprint $table) {
-                $table->dropColumn('is_admin');
+                $table->dropUnique('users_phone_unique');
+                $table->dropColumn('phone');
             });
         }
     }

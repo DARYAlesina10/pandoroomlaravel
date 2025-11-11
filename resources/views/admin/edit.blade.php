@@ -3,6 +3,9 @@
 @section('content')
 <div class="container">
     <h1>Редактировать квест</h1>
+    <div class="mb-3">
+        <a href="{{ route('admin.quests.schedule', $quest->id) }}" class="btn btn-secondary">Настроить расписание</a>
+    </div>
     <form action="{{ route('admin.update', $quest->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
@@ -20,7 +23,7 @@
         </div>
         <div class="form-group">
             <label for="branchId">Филиал</label>
-            <input type="number" name="branchId" id="branchId" class="form-control" value="{{ $quest->branchId }}">
+            <input type="number" name="branchId" id="branchId" class="form-control" value="{{ old('branchId', $quest->branchId) }}">
         </div>
         <div class="form-group">
             <label for="players_count">Количество игроков</label>
@@ -28,7 +31,7 @@
         </div>
         <div class="form-group">
             <label for="game_time">Время игры</label>
-            <input type="text" name="game_time" id="game_time" class="form-control" value="{{ $quest->game_time }}">
+            <input type="text" name="game_time" id="game_time" class="form-control" value="{{ old('game_time', $quest->game_time) }}">
         </div>
         <div class="form-group">
             <label for="preview_image">Превью изображение</label>
@@ -58,11 +61,19 @@
         </div>
         <div class="form-group">
             <label for="additional_players">Дополнительные игроки</label>
-            <input type="number" name="additional_players" id="additional_players" class="form-control" value="{{ $quest->additional_players }}">
+            <input type="number" name="additional_players" id="additional_players" class="form-control" value="{{ old('additional_players', $quest->additional_players) }}" min="0">
         </div>
         <div class="form-group">
             <label for="price_per_additional_player">Цена за дополнительного игрока</label>
-            <input type="number" name="price_per_additional_player" id="price_per_additional_player" class="form-control" value="{{ $quest->price_per_additional_player }}">
+            <input type="number" name="price_per_additional_player" id="price_per_additional_player" class="form-control" value="{{ old('price_per_additional_player', $quest->price_per_additional_player) }}" min="0">
+        </div>
+        <div class="form-group">
+            <label for="weekday_base_price">Базовая цена (будни)</label>
+            <input type="number" step="0.01" name="weekday_base_price" id="weekday_base_price" class="form-control" value="{{ old('weekday_base_price', $quest->weekday_base_price) }}" required>
+        </div>
+        <div class="form-group">
+            <label for="weekend_base_price">Базовая цена (выходные)</label>
+            <input type="number" step="0.01" name="weekend_base_price" id="weekend_base_price" class="form-control" value="{{ old('weekend_base_price', $quest->weekend_base_price) }}" required>
         </div>
         <button type="submit" class="btn btn-primary">Сохранить изменения</button>
     </form>

@@ -12,11 +12,16 @@ class AdminQuestController extends Controller
     {
         return view('admin.create');
     }
-public function index()
+
+    public function index()
     {
-     
-        // Возврат представления с данными
-        return view('admin.quests');
+        $quests = Quest::withCount('slots')
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.quests', [
+            'quests' => $quests,
+        ]);
     }
     public function store(Request $request)
     {
@@ -35,10 +40,12 @@ public function index()
             'additional_services' => 'nullable|string',
             'additional_players' => 'nullable|integer',
             'price_per_additional_player' => 'nullable|integer',
+            'weekday_base_price' => 'required|numeric|min:0',
+            'weekend_base_price' => 'required|numeric|min:0',
         ]);
 
         $quest = new Quest();
-        $quest->fill($request->all());
+        $quest->fill($this->prepareQuestPayload($request));
 
         if ($request->hasFile('preview_image')) {
             $path = $request->file('preview_image')->store('images/quests');
@@ -58,7 +65,8 @@ public function index()
     public function edit($id)
     {
         $quest = Quest::findOrFail($id);
-        return view('quests.edit', compact('quest'));
+
+        return view('admin.edit', compact('quest'));
     }
 
     public function update(Request $request, $id)
@@ -78,10 +86,12 @@ public function index()
             'additional_services' => 'nullable|string',
             'additional_players' => 'nullable|integer',
             'price_per_additional_player' => 'nullable|integer',
+            'weekday_base_price' => 'required|numeric|min:0',
+            'weekend_base_price' => 'required|numeric|min:0',
         ]);
 
         $quest = Quest::findOrFail($id);
-        $quest->fill($request->all());
+        $quest->fill($this->prepareQuestPayload($request));
 
         if ($request->hasFile('preview_image')) {
             if ($quest->preview_image) {
@@ -101,6 +111,24 @@ public function index()
 
         $quest->save();
 
-        return redirect()->route('quests.edit', $quest->id)->with('success', 'Квест успешно обновлён!');
+        return redirect()->route('admin.edit', $quest->id)->with('success', 'Квест успешно обновлён!');
+    }
+
+    protected function prepareQuestPayload(Request $request): array
+    {
+        $data = $request->except(['preview_image', 'background_image']);
+
+        $additionalPlayers = $request->input('additional_players');
+        $pricePerAdditional = $request->input('price_per_additional_player');
+
+        $data['additional_players'] = $additionalPlayers === null || $additionalPlayers === ''
+            ? 0
+            : (int) $additionalPlayers;
+
+        $data['price_per_additional_player'] = $pricePerAdditional === null || $pricePerAdditional === ''
+            ? 0
+            : (int) $pricePerAdditional;
+
+        return $data;
     }
 }
