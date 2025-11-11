@@ -114,7 +114,7 @@
 
     .table-board {
         display: grid;
-        grid-template-columns: 260px 1fr;
+        grid-template-columns: 220px 1fr;
         gap: 22px;
     }
 
@@ -137,10 +137,10 @@
 
     .table-board__row {
         display: grid;
-        grid-template-columns: 260px 1fr;
+        grid-template-columns: 220px 1fr;
         gap: 22px;
         align-items: stretch;
-        padding: 18px 0;
+        padding: 16px 0;
         border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
 
@@ -152,12 +152,17 @@
     .table-board__table-card {
         background: linear-gradient(145deg, rgba(32, 36, 52, 0.96), rgba(44, 54, 80, 0.92));
         border-radius: 14px;
-        padding: 18px;
+        padding: 14px 16px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 6px;
         height: 100%;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        transition: transform 0.2s ease;
+    }
+
+    .table-board__table-card:hover {
+        transform: translateY(-2px);
     }
 
     .table-board__table-hall {
@@ -172,7 +177,7 @@
 
     .table-board__table-card h4 {
         margin: 0;
-        font-size: 17px;
+        font-size: 16px;
         font-weight: 700;
     }
 
@@ -182,12 +187,20 @@
         gap: 4px;
         font-size: 13px;
         color: rgba(245, 246, 248, 0.6);
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-height 0.2s ease, opacity 0.2s ease;
     }
 
     .table-board__services {
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-height 0.2s ease, opacity 0.2s ease;
     }
 
     .table-board__service {
@@ -203,6 +216,20 @@
         gap: 8px;
         flex-wrap: wrap;
         margin-top: auto;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-height 0.2s ease, opacity 0.2s ease;
+    }
+
+    .table-board__table-card:hover .table-board__table-meta,
+    .table-board__table-card:hover .table-board__services,
+    .table-board__table-card:hover .table-board__row-controls,
+    .table-board__table-card:focus-within .table-board__table-meta,
+    .table-board__table-card:focus-within .table-board__services,
+    .table-board__table-card:focus-within .table-board__row-controls {
+        max-height: 400px;
+        opacity: 1;
     }
 
     .table-board__timeline {
@@ -227,6 +254,7 @@
         justify-content: center;
         min-height: 68px;
         background: rgba(255, 255, 255, 0.02);
+        user-select: none;
     }
 
     .table-board__slot small {
@@ -247,6 +275,17 @@
     .table-board__slot--free:hover {
         transform: translateY(-2px);
         box-shadow: 0 12px 24px rgba(63, 214, 127, 0.28);
+    }
+
+    .table-board__slot--selecting,
+    .table-board__slot--selected {
+        background: linear-gradient(135deg, rgba(90, 227, 160, 0.4), rgba(47, 167, 101, 0.4));
+        border: 1px solid rgba(63, 214, 127, 0.65);
+        box-shadow: 0 0 0 2px rgba(63, 214, 127, 0.2);
+    }
+
+    .table-board__slot--selected {
+        box-shadow: 0 0 0 2px rgba(63, 214, 127, 0.35);
     }
 
     .table-board__slot--booked {
@@ -337,7 +376,7 @@
                     <small>{{ $selectedDate->translatedFormat('d F, l') }} · Столов: {{ $totalTables }}</small>
                 </div>
                 <div class="table-board__legend">
-                    <span><i class="free"></i> свободно</span>
+                    <span><i class="free"></i> доступно</span>
                     <span><i class="busy"></i> занято</span>
                     <span><i class="disabled"></i> недоступно</span>
                 </div>
@@ -391,14 +430,21 @@
                                             @endif
                                         </div>
                                         <div class="table-board__row-controls">
+                                            @php
+                                                $quickStart = '09:00';
+                                                $quickEnd = \Illuminate\Support\Carbon::createFromFormat('H:i', $quickStart)
+                                                    ->addMinutes(30)
+                                                    ->format('H:i');
+                                            @endphp
                                             <button type="button"
                                                     class="btn btn-sm btn-outline-light"
                                                     data-open-table-booking
                                                     data-table-id="{{ $table->id }}"
                                                     data-table-name="{{ $table->name }}"
                                                     data-table-hall="{{ $hall->name }}"
-                                                    data-start="09:00">
-                                                Быстрая бронь с 09:00
+                                                    data-start="{{ $quickStart }}"
+                                                    data-end="{{ $quickEnd }}">
+                                                Быстрая бронь с {{ $quickStart }}
                                             </button>
                                             <a href="{{ route('admin.tables') }}#table-{{ $table->id }}" class="btn btn-sm btn-outline-secondary">Редактировать</a>
                                         </div>
@@ -446,16 +492,22 @@
                                                     $slotIndex += $span;
                                                 @endphp
                                             @else
+                                                @php
+                                                    $slotEnd = \Illuminate\Support\Carbon::createFromFormat('H:i', $currentSlot)
+                                                        ->addMinutes(30)
+                                                        ->format('H:i');
+                                                @endphp
                                                 <button type="button"
                                                         class="table-board__slot table-board__slot--free"
                                                         style="grid-column: span 1;"
-                                                        data-open-table-booking
                                                         data-table-id="{{ $table->id }}"
                                                         data-table-name="{{ $table->name }}"
                                                         data-table-hall="{{ $hall->name }}"
-                                                        data-start="{{ $currentSlot }}">
-                                                    <small>{{ $currentSlot }} – {{ \Illuminate\Support\Carbon::createFromFormat('H:i', $currentSlot)->addMinutes(30)->format('H:i') }}</small>
-                                                    <span>Свободно</span>
+                                                        data-start="{{ $currentSlot }}"
+                                                        data-end="{{ $slotEnd }}"
+                                                        data-slot-index="{{ $slotIndex }}">
+                                                    <small>{{ $currentSlot }} – {{ $slotEnd }}</small>
+                                                    <span>Выбрать</span>
                                                 </button>
                                                 @php
                                                     $slotIndex++;
@@ -591,11 +643,14 @@
             ];
         })];
     });
+
+    $slotTimesForJs = array_values($timeSlots);
 @endphp
 
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const slotTimes = @json($slotTimesForJs);
         const bookingModal = new bootstrap.Modal(document.getElementById('tableBookingModal'));
         const bookingInfoModal = new bootstrap.Modal(document.getElementById('tableBookingInfo'));
         const questSlots = @json($questSlotsMap);
@@ -609,23 +664,18 @@
         const questSlotSelect = document.getElementById('modal-quest-slot');
 
         document.querySelectorAll('[data-open-table-booking]').forEach((button) => {
+            if (button.classList.contains('table-board__slot--free')) {
+                return;
+            }
+
             button.addEventListener('click', () => {
                 const tableId = button.getAttribute('data-table-id');
                 const tableName = button.getAttribute('data-table-name');
                 const hallName = button.getAttribute('data-table-hall');
                 const start = button.getAttribute('data-start');
+                const end = button.getAttribute('data-end') || null;
 
-                document.getElementById('modal-table-id').value = tableId || '';
-                document.getElementById('modal-table-name').value = tableName || '';
-                hallInput.value = hallName || '';
-                startInput.value = start || '';
-                questToggle.checked = false;
-                questFields.style.display = 'none';
-                questSelect.value = '';
-                questSlotSelect.innerHTML = '<option value="">Выберите слот</option>';
-
-                populateEndOptions(start);
-                bookingModal.show();
+                openTableBooking(tableId, tableName, hallName, start, end);
             });
         });
 
@@ -674,13 +724,209 @@
             }
         });
 
-        function populateEndOptions(start) {
+        const freeSlotButtons = document.querySelectorAll('.table-board__slot--free');
+        let isDragging = false;
+        let selectionTableId = null;
+        let selectionStartIndex = null;
+        let selectionRangeStart = null;
+        let selectionRangeEnd = null;
+        let selectingButtons = [];
+        let selectedButtons = [];
+        let selectionReady = false;
+
+        function clearSelecting() {
+            if (selectingButtons.length === 0) {
+                return;
+            }
+            selectingButtons.forEach((btn) => btn.classList.remove('table-board__slot--selecting'));
+            selectingButtons = [];
+        }
+
+        function clearSelectedRange() {
+            if (selectedButtons.length > 0) {
+                selectedButtons.forEach((btn) => btn.classList.remove('table-board__slot--selected'));
+            }
+            selectedButtons = [];
+            selectionReady = false;
+            selectionRangeStart = null;
+            selectionRangeEnd = null;
+            selectionTableId = null;
+            selectionStartIndex = null;
+        }
+
+        function beginSelection(button, event) {
+            if (event) {
+                event.preventDefault();
+            }
+            clearSelecting();
+            clearSelectedRange();
+            const tableId = button.getAttribute('data-table-id');
+            const slotIndex = parseInt(button.getAttribute('data-slot-index'), 10);
+            if (!tableId || Number.isNaN(slotIndex)) {
+                return;
+            }
+            isDragging = true;
+            selectionTableId = tableId;
+            selectionStartIndex = slotIndex;
+            selectionRangeStart = slotIndex;
+            selectionRangeEnd = slotIndex;
+            updateSelection(button);
+        }
+
+        function updateSelection(button) {
+            if (!isDragging || button.getAttribute('data-table-id') !== selectionTableId) {
+                return;
+            }
+
+            const row = button.closest('.table-board__row');
+            if (!row) {
+                return;
+            }
+
+            const freeButtons = Array.from(row.querySelectorAll('.table-board__slot--free'));
+            const indexMap = new Map();
+            freeButtons.forEach((btn) => {
+                const index = parseInt(btn.getAttribute('data-slot-index'), 10);
+                if (!Number.isNaN(index)) {
+                    indexMap.set(index, btn);
+                }
+            });
+
+            const currentIndex = parseInt(button.getAttribute('data-slot-index'), 10);
+            if (Number.isNaN(currentIndex)) {
+                return;
+            }
+
+            const minIndex = Math.min(selectionStartIndex, currentIndex);
+            const maxIndex = Math.max(selectionStartIndex, currentIndex);
+
+            for (let idx = minIndex; idx <= maxIndex; idx++) {
+                if (!indexMap.has(idx)) {
+                    return;
+                }
+            }
+
+            clearSelecting();
+
+            for (let idx = minIndex; idx <= maxIndex; idx++) {
+                const slotButton = indexMap.get(idx);
+                slotButton.classList.add('table-board__slot--selecting');
+                selectingButtons.push(slotButton);
+            }
+
+            selectionRangeStart = minIndex;
+            selectionRangeEnd = maxIndex;
+        }
+
+        function finalizeSelection() {
+            if (!isDragging) {
+                return;
+            }
+
+            isDragging = false;
+
+            const currentSelection = [...selectingButtons];
+            clearSelecting();
+
+            if (currentSelection.length === 0) {
+                selectionReady = false;
+                return;
+            }
+
+            selectedButtons = currentSelection;
+            selectedButtons.forEach((btn) => btn.classList.add('table-board__slot--selected'));
+            selectionReady = true;
+        }
+
+        function formatTime(date) {
+            return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function addMinutesToTime(time, minutes) {
+            const [hour, minute] = time.split(':').map(Number);
+            if (Number.isNaN(hour)) {
+                return time;
+            }
+            const dt = new Date();
+            dt.setHours(hour, minute, 0, 0);
+            dt.setMinutes(dt.getMinutes() + minutes);
+            return formatTime(dt);
+        }
+
+        function openSelectionModal() {
+            if (!selectionReady || selectedButtons.length === 0) {
+                return;
+            }
+
+            const first = selectedButtons[0];
+            const tableId = first.getAttribute('data-table-id');
+            const tableName = first.getAttribute('data-table-name');
+            const hallName = first.getAttribute('data-table-hall');
+            const startTime = slotTimes[selectionRangeStart] || first.getAttribute('data-start');
+            const slotCount = selectionRangeEnd - selectionRangeStart + 1;
+            const endTime = addMinutesToTime(startTime, slotCount * 30);
+
+            openTableBooking(tableId, tableName, hallName, startTime, endTime);
+            clearSelectedRange();
+        }
+
+        freeSlotButtons.forEach((button) => {
+            button.addEventListener('mousedown', (event) => {
+                if (event.button !== 0) {
+                    return;
+                }
+                beginSelection(button, event);
+            });
+
+            button.addEventListener('mouseenter', () => {
+                updateSelection(button);
+            });
+
+            button.addEventListener('click', (event) => {
+                if (selectionReady && selectedButtons.includes(button)) {
+                    event.preventDefault();
+                    openSelectionModal();
+                }
+            });
+        });
+
+        document.addEventListener('mouseup', () => {
+            finalizeSelection();
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.table-board__slot--free') && !event.target.closest('#tableBookingModal')) {
+                clearSelectedRange();
+            }
+        });
+
+        function openTableBooking(tableId, tableName, hallName, start, preferredEnd = null) {
+            clearSelectedRange();
+
+            document.getElementById('modal-table-id').value = tableId || '';
+            document.getElementById('modal-table-name').value = tableName || '';
+            hallInput.value = hallName || '';
+            startInput.value = start || '';
+            questToggle.checked = false;
+            questFields.style.display = 'none';
+            questSelect.value = '';
+            questSlotSelect.innerHTML = '<option value="">Выберите слот</option>';
+
+            populateEndOptions(start, preferredEnd);
+            bookingModal.show();
+        }
+
+        function populateEndOptions(start, preferredEnd = null) {
             endSelect.innerHTML = '';
             if (!start) {
                 return;
             }
             const [hour, minute] = start.split(':').map(Number);
-            let current = new Date();
+            if (Number.isNaN(hour)) {
+                return;
+            }
+
+            const current = new Date();
             current.setHours(hour, minute, 0, 0);
 
             const closing = new Date();
@@ -691,11 +937,19 @@
                 if (current > closing) {
                     break;
                 }
-                const value = current.toTimeString().slice(0, 5);
+                const value = formatTime(current);
                 const option = document.createElement('option');
                 option.value = value;
                 option.textContent = value;
                 endSelect.appendChild(option);
+            }
+
+            if (preferredEnd) {
+                const preferred = Array.from(endSelect.options).find((option) => option.value === preferredEnd);
+                if (preferred) {
+                    preferred.selected = true;
+                    return;
+                }
             }
 
             if (endSelect.options.length > 0) {
