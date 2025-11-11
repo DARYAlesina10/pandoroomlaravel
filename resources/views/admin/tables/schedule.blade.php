@@ -1,5 +1,236 @@
 @extends('layouts.app')
 
+@push('styles')
+<style>
+    .table-board-wrapper {
+        background: #0f1014;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+        color: #f5f6f8;
+    }
+
+    .table-board__meta {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 24px;
+    }
+
+    .table-board__meta h2 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .table-board__meta small {
+        color: rgba(245, 246, 248, 0.65);
+    }
+
+    .table-board__legend {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        margin-left: auto;
+        flex-wrap: wrap;
+    }
+
+    .table-board__legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: rgba(245, 246, 248, 0.7);
+    }
+
+    .table-board__legend i {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    .table-board__legend i.free {
+        background: linear-gradient(135deg, #39b54a, #78ff6a);
+    }
+
+    .table-board__legend i.busy {
+        background: linear-gradient(135deg, #f45b69, #c81d77);
+    }
+
+    .table-board__legend i.disabled {
+        background: linear-gradient(135deg, #3b4456, #1c212e);
+    }
+
+    .table-board {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        gap: 24px;
+    }
+
+    .table-board__timeline {
+        display: grid;
+        grid-template-columns: repeat(var(--slot-count), minmax(56px, 1fr));
+        gap: 4px;
+        position: relative;
+    }
+
+    .table-board__timeline::before {
+        content: '';
+        position: absolute;
+        top: -12px;
+        left: 0;
+        right: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .table-board__time-headings {
+        display: grid;
+        grid-template-columns: repeat(var(--slot-count), minmax(56px, 1fr));
+        gap: 4px;
+        margin-bottom: 12px;
+    }
+
+    .table-board__time-headings span {
+        font-size: 12px;
+        text-align: center;
+        color: rgba(245, 246, 248, 0.65);
+    }
+
+    .table-board__row {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        align-items: stretch;
+        gap: 24px;
+        padding: 18px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .table-board__row:first-of-type {
+        border-top: none;
+        padding-top: 0;
+    }
+
+    .table-board__table-card {
+        background: linear-gradient(135deg, rgba(29, 34, 45, 0.9), rgba(46, 57, 81, 0.9));
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: sticky;
+        top: 90px;
+    }
+
+    .table-board__table-card h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .table-board__table-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 13px;
+        color: rgba(245, 246, 248, 0.6);
+    }
+
+    .table-board__services {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .table-board__service {
+        background: rgba(120, 128, 255, 0.15);
+        color: #cbd2ff;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+
+    .table-board__slot {
+        border: none;
+        border-radius: 10px;
+        padding: 12px 10px;
+        text-align: left;
+        font-size: 13px;
+        color: #f5f6f8;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        justify-content: center;
+        min-height: 68px;
+    }
+
+    .table-board__slot small {
+        font-weight: 500;
+        font-size: 11px;
+        color: rgba(245, 246, 248, 0.75);
+    }
+
+    .table-board__slot span {
+        font-size: 12px;
+    }
+
+    .table-board__slot--free {
+        background: linear-gradient(135deg, rgba(63, 214, 127, 0.18), rgba(47, 167, 101, 0.18));
+        border: 1px solid rgba(63, 214, 127, 0.3);
+    }
+
+    .table-board__slot--free:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(63, 214, 127, 0.28);
+    }
+
+    .table-board__slot--booked {
+        background: linear-gradient(135deg, rgba(241, 98, 137, 0.85), rgba(121, 40, 202, 0.85));
+        border: 1px solid rgba(241, 98, 137, 0.9);
+    }
+
+    .table-board__slot--booked:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px rgba(241, 98, 137, 0.35);
+    }
+
+    .table-board__slot--disabled {
+        background: linear-gradient(135deg, rgba(62, 68, 84, 0.65), rgba(40, 44, 59, 0.65));
+        border: 1px solid rgba(62, 68, 84, 0.4);
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .table-board__row-controls {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 992px) {
+        .table-board {
+            grid-template-columns: 1fr;
+        }
+
+        .table-board__row {
+            grid-template-columns: 1fr;
+        }
+
+        .table-board__table-card {
+            position: static;
+        }
+
+        .table-board__time-headings,
+        .table-board__timeline {
+            overflow-x: auto;
+        }
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="container py-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
@@ -35,92 +266,120 @@
     @elseif ($tables->isEmpty())
         <div class="alert alert-info">В выбранном зале пока нет столов. Добавьте их, чтобы строить расписание.</div>
     @else
-        <div class="d-flex flex-column gap-4">
-            @foreach ($tables as $table)
-                <div class="card shadow-sm">
-                    <div class="card-header d-flex flex-column flex-lg-row justify-content-between gap-2 align-items-lg-center">
-                        <div>
-                            <h2 class="h5 mb-1">{{ $table->name }}</h2>
-                            <div class="text-muted small">{{ $table->min_capacity }}–{{ $table->max_capacity }} гостей · {{ $selectedDate->translatedFormat('d F, l') }}</div>
-                        </div>
-                        <div class="text-muted small">
-                            @if ($table->services)
-                                <span class="me-2">Услуги:</span>
-                                @foreach ($table->services as $service)
-                                    <span class="badge bg-light text-dark">{{ $service }}</span>
-                                @endforeach
-                            @else
-                                <span class="badge bg-light text-dark">Без доп. услуг</span>
-                            @endif
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-sm align-middle mb-0">
-                                <thead>
-                                    <tr>
-                                        <th style="width:120px">Время</th>
-                                        <th>Статус</th>
-                                        <th>Комментарий</th>
-                                        <th style="width:160px" class="text-end">Действия</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                @foreach ($timeSlots as $slot)
-                                    @php
-                                        $key = $table->id . '|' . $slot;
-                                        $bookingCollection = $bookings->get($key);
-                                        $booking = $bookingCollection ? $bookingCollection->first() : null;
-                                        $endTime = $booking ? \Illuminate\Support\Carbon::createFromFormat('H:i:s', $booking->end_time)->format('H:i') : null;
-                                    @endphp
-                                    <tr class="slot-row {{ $booking ? 'table-warning' : '' }}">
-                                        <td>{{ $slot }} – {{ $booking ? $endTime : \Illuminate\Support\Carbon::createFromFormat('H:i', $slot)->addMinutes(30)->format('H:i') }}</td>
-                                        <td>
-                                            @if ($booking)
-                                                <div class="fw-semibold">Забронировано</div>
-                                                <div class="small text-muted">{{ $booking->customer_name }} • {{ $booking->customer_phone }}</div>
-                                                @if ($booking->questBooking)
-                                                    <div class="small">Квест: {{ optional(optional($booking->questBooking)->quest)->name }}</div>
-                                                @endif
-                                            @else
-                                                <span class="text-success">Свободно</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if ($booking)
-                                                <div class="small text-muted">Сотрудник: {{ $booking->staff_name }}</div>
-                                                <div class="small">{{ $booking->comment ?? '—' }}</div>
-                                            @else
-                                                <span class="text-muted">—</span>
-                                            @endif
-                                        </td>
-                                        <td class="text-end">
-                                            @if ($booking)
-                                                <button type="button" class="btn btn-outline-secondary btn-sm" data-booking-details
-                                                    data-customer="{{ $booking->customer_name }}"
-                                                    data-phone="{{ $booking->customer_phone }}"
-                                                    data-staff="{{ $booking->staff_name }}"
-                                                    data-comment="{{ $booking->comment }}"
-                                                    data-quest="{{ optional(optional($booking->questBooking)->quest)->name }}"
-                                                    data-start="{{ $slot }}"
-                                                    data-end="{{ $endTime }}"
-                                                >Подробнее</button>
-                                            @else
-                                                <button type="button" class="btn btn-primary btn-sm" data-open-table-booking
-                                                    data-table-id="{{ $table->id }}"
-                                                    data-table-name="{{ $table->name }}"
-                                                    data-start="{{ $slot }}"
-                                                >Забронировать</button>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+        @php
+            $slotCount = count($timeSlots);
+        @endphp
+        <div class="table-board-wrapper">
+            <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-3 table-board__meta">
+                <div>
+                    <h2>{{ optional($selectedHall)->name }}</h2>
+                    <small>{{ $selectedDate->translatedFormat('d F, l') }} · Всего столов: {{ $tables->count() }}</small>
                 </div>
-            @endforeach
+                <div class="table-board__legend">
+                    <span><i class="free"></i> свободно</span>
+                    <span><i class="busy"></i> занято</span>
+                    <span><i class="disabled"></i> недоступно</span>
+                </div>
+            </div>
+            <div class="table-board">
+                <div></div>
+                <div class="table-board__time-headings" style="--slot-count: {{ $slotCount }};">
+                    @foreach ($timeSlots as $slot)
+                        <span>{{ $slot }}</span>
+                    @endforeach
+                </div>
+
+                @foreach ($tables as $table)
+                    <div class="table-board__row">
+                        <div class="table-board__table-card">
+                            <div>
+                                <h3>{{ $table->name }}</h3>
+                                <div class="table-board__table-meta">
+                                    <span>Вместимость: {{ $table->min_capacity }}–{{ $table->max_capacity }} гостей</span>
+                                    <span>Статус: {{ $table->is_active ? 'активен' : 'скрыт' }}</span>
+                                </div>
+                            </div>
+                            <div class="table-board__services">
+                                @if (!empty($table->services))
+                                    @foreach ($table->services as $service)
+                                        <span class="table-board__service">{{ $service }}</span>
+                                    @endforeach
+                                @else
+                                    <span class="table-board__service" style="background: rgba(255,255,255,0.08); color: rgba(245,246,248,0.6);">Без доп. услуг</span>
+                                @endif
+                            </div>
+                            <div class="table-board__row-controls">
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-light"
+                                        data-open-table-booking
+                                        data-table-id="{{ $table->id }}"
+                                        data-table-name="{{ $table->name }}"
+                                        data-start="09:00">
+                                    Быстрая бронь с 09:00
+                                </button>
+                                <a href="{{ route('admin.tables') }}#table-{{ $table->id }}" class="btn btn-sm btn-outline-secondary">Редактировать</a>
+                            </div>
+                        </div>
+                        <div class="table-board__timeline" style="--slot-count: {{ $slotCount }};">
+                            @php
+                                $slotIndex = 0;
+                            @endphp
+                            @while ($slotIndex < $slotCount)
+                                @php
+                                    $currentSlot = $timeSlots[$slotIndex];
+                                    $key = $table->id . '|' . $currentSlot;
+                                    $bookingCollection = $bookings->get($key);
+                                    $booking = $bookingCollection ? $bookingCollection->first() : null;
+                                @endphp
+
+                                @if ($booking)
+                                    @php
+                                        $startCarbon = \Illuminate\Support\Carbon::createFromFormat('H:i:s', $booking->start_time);
+                                        $endCarbon = \Illuminate\Support\Carbon::createFromFormat('H:i:s', $booking->end_time);
+                                        $span = max(1, (int) ($startCarbon->diffInMinutes($endCarbon) / 30));
+                                        $endLabel = $endCarbon->format('H:i');
+                                        $questName = optional(optional($booking->questBooking)->quest)->name;
+                                    @endphp
+                                    <button type="button"
+                                            class="table-board__slot table-board__slot--booked"
+                                            style="grid-column: span {{ $span }};"
+                                            data-booking-details
+                                            data-start="{{ $currentSlot }}"
+                                            data-end="{{ $endLabel }}"
+                                            data-customer="{{ $booking->customer_name }}"
+                                            data-phone="{{ $booking->customer_phone }}"
+                                            data-staff="{{ $booking->staff_name }}"
+                                            data-comment="{{ $booking->comment }}"
+                                            data-quest="{{ $questName }}">
+                                        <small>{{ $currentSlot }} – {{ $endLabel }}</small>
+                                        <span>{{ $booking->customer_name }}</span>
+                                        @if ($questName)
+                                            <small>Квест: {{ $questName }}</small>
+                                        @endif
+                                    </button>
+                                    @php
+                                        $slotIndex += $span;
+                                    @endphp
+                                @else
+                                    <button type="button"
+                                            class="table-board__slot table-board__slot--free"
+                                            style="grid-column: span 1;"
+                                            data-open-table-booking
+                                            data-table-id="{{ $table->id }}"
+                                            data-table-name="{{ $table->name }}"
+                                            data-start="{{ $currentSlot }}">
+                                        <small>{{ $currentSlot }} – {{ \Illuminate\Support\Carbon::createFromFormat('H:i', $currentSlot)->addMinutes(30)->format('H:i') }}</small>
+                                        <span>Свободно</span>
+                                    </button>
+                                    @php
+                                        $slotIndex++;
+                                    @endphp
+                                @endif
+                            @endwhile
+                        </div>
+                    </div>
+                @endforeach
+            </div>
         </div>
     @endif
 </div>
